@@ -5,8 +5,7 @@ Aplicación única (React 19 + Vite + Tailwind CSS 4) que une el **formulario** 
 | Ruta | Contenido |
 | --- | --- |
 | `/` | Formulario público de solicitud de evaluación |
-| `/admin` | Dashboard de gestión (métricas y solicitudes recientes) |
-| `/admin/solicitudes/:id` | Detalle de solicitud (placeholder, próxima fase) |
+| `/admin` | Dashboard de gestión, pendiente de conectar a datos reales |
 
 ## Estructura
 
@@ -15,8 +14,7 @@ src/
 ├── main.jsx                      # Punto de entrada (BrowserRouter)
 ├── App.jsx                       # Definición de rutas
 ├── constants/
-│   ├── routes.js                 # Rutas de la app y helpers de path
-│   └── requestStatus.js          # Estados de solicitud (Pendiente, En proceso, Finalizada)
+│   └── routes.js                 # Rutas de la app
 ├── layouts/
 │   ├── AdminLayout.jsx           # Shell del dashboard (.admin-app + sidebar + <Outlet />)
 │   └── Sidebar.jsx
@@ -26,15 +24,9 @@ src/
 │   │   ├── constants.js          # Familias de cargo, estado inicial, clases de inputs
 │   │   ├── components/           # FormField, FormAlert
 │   │   └── hooks/useEvaluacionForm.js
-│   └── dashboard/
-│       ├── DashboardPage.jsx
-│       ├── RequestDetailPage.jsx
-│       └── components/           # MetricCard, RequestsTable, StatusBadge
+│   └── dashboard/DashboardPage.jsx
 ├── services/
-│   ├── evaluacionesService.js    # POST /api/evaluaciones/iniciar
-│   ├── solicitudesService.js     # Lectura de solicitudes y candidatos (mock por ahora)
-│   └── mock/mockData.js
-├── utils/formatDate.js
+│   └── evaluacionesService.js    # POST /api/evaluaciones/iniciar
 └── styles/
     ├── index.css                 # Solo Tailwind
     └── admin.css                 # Estilos del dashboard, con scope .admin-app
@@ -61,7 +53,15 @@ El formulario envía un `POST` multipart a `/api/evaluaciones/iniciar`. Para apu
 cp .env.example .env.local   # ajusta VITE_API_PROXY_TARGET
 ```
 
-El dashboard usa por ahora datos simulados (`src/services/mock/mockData.js`).
+El dashboard no muestra métricas ni solicitudes mientras no exista una integración de lectura con datos reales.
+
+## Base de datos Supabase
+
+1. Crea un proyecto Supabase y abre **SQL Editor**.
+2. Ejecuta el contenido de `supabase/migrations/0001_init.sql`. La migración crea las tablas `candidatos` y `solicitudes`, habilita RLS sin políticas públicas y crea el bucket privado `cvs`.
+3. En **Project Settings → API**, copia la URL del proyecto y la `service_role` secret key para la configuración local del servidor. Nunca uses esa clave en el frontend ni la subas al repositorio.
+
+El bucket se crea por SQL en esta migración. Si el rol de ejecución no permite escribir en `storage.buckets`, créalo desde **Storage → New bucket** con nombre `cvs` y acceso privado, y vuelve a ejecutar la migración.
 
 ## Despliegue
 
