@@ -8,8 +8,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <Link className="brand" to={ROUTES.ADMIN} aria-label="AquaChile Selección, inicio">
-        <span className="brand-symbol" aria-hidden="true">A</span>
-        <span className="brand-name">AquaChile<span>Reclutamiento</span></span>
+        <img className="brand-logo" src="/aquachile-logo.webp" alt="AquaChile" />
       </Link>
       <div className="sidebar-caption">GESTIÓN</div>
       <nav aria-label="Navegación principal">

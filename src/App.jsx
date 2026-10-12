@@ -3,7 +3,6 @@ import { ROUTES } from '@/constants/routes.js'
 import AdminLayout from '@/layouts/AdminLayout.jsx'
 import FormularioPage from '@/pages/formulario/FormularioPage.jsx'
 import DashboardPage from '@/pages/dashboard/DashboardPage.jsx'
-import RequestDetailPage from '@/pages/dashboard/RequestDetailPage.jsx'
 
 export default function App() {
   return (
@@ -14,7 +13,6 @@ export default function App() {
       {/* Interno: dashboard de gestión */}
       <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="solicitudes/:id" element={<RequestDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
