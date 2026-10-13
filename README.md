@@ -1,68 +1,103 @@
 # AquaChile · Reclutamiento
 
-Aplicación única (React 19 + Vite + Tailwind CSS 4) que une el **formulario** de solicitud de evaluación psicolaboral y el **dashboard** de gestión.
+SPA React 19 + Vite + Tailwind CSS 4 para solicitar evaluaciones psicolaborales y consultar solicitudes/candidatos. El backend en Node 22 usa Supabase Postgres y Storage.
 
-| Ruta | Contenido |
+| Ruta | Uso |
 | --- | --- |
-| `/` | Formulario público de solicitud de evaluación |
-| `/admin` | Dashboard de gestión, pendiente de conectar a datos reales |
+| `/` | Formulario público de solicitud y carga de CV |
+| `/admin` | Indicadores y solicitudes obtenidas desde la API |
 
-## Estructura
+## Arquitectura
 
-```
-src/
-├── main.jsx                      # Punto de entrada (BrowserRouter)
-├── App.jsx                       # Definición de rutas
-├── constants/
-│   └── routes.js                 # Rutas de la app
-├── layouts/
-│   ├── AdminLayout.jsx           # Shell del dashboard (.admin-app + sidebar + <Outlet />)
-│   └── Sidebar.jsx
-├── pages/
-│   ├── formulario/
-│   │   ├── FormularioPage.jsx
-│   │   ├── constants.js          # Familias de cargo, estado inicial, clases de inputs
-│   │   ├── components/           # FormField, FormAlert
-│   │   └── hooks/useEvaluacionForm.js
-│   └── dashboard/DashboardPage.jsx
-├── services/
-│   └── evaluacionesService.js    # POST /api/evaluaciones/iniciar
-└── styles/
-    ├── index.css                 # Solo Tailwind
-    └── admin.css                 # Estilos del dashboard, con scope .admin-app
-```
+- `src/`: frontend React; las llamadas HTTP viven en `src/services/`.
+- `server/`: API Express; el cliente Supabase con service role solo vive en el servidor.
+- `supabase/migrations/`: migraciones SQL para tablas, RLS y Storage.
+- `docker-compose.yml`: frontend nginx y backend API.
 
-Convenciones:
+## Crear y preparar Supabase
 
-- Cada página vive en `src/pages/<nombre>/` con sus propios `components/`, `hooks/` y `constants.js`. Lo que usen dos o más páginas va a `src/components/`, `src/hooks/` o `src/utils/`.
-- La comunicación con el backend vive solo en `src/services/`; las páginas no llaman a `fetch` directamente.
-- Imports con alias `@/` (apunta a `src/`), por ejemplo `import { ROUTES } from '@/constants/routes.js'`.
+1. Crea un proyecto Supabase nuevo y espera que la base de datos y Storage estén disponibles.
+2. En **SQL Editor**, ejecuta el contenido de `supabase/migrations/0001_init.sql`. Esto crea `public.candidatos`, `public.solicitudes`, habilita RLS sin políticas públicas y registra el bucket privado `cvs`.
+3. Si la inserción de `storage.buckets` no está permitida en tu entorno, crea el bucket `cvs` desde **Storage → New bucket** con **Public bucket** desactivado y vuelve a ejecutar la migración.
+4. En **Project Settings → API**, copia Project URL y `service_role` key a `.env` local. La service role key omite RLS: úsala exclusivamente en el contenedor API, nunca en el frontend, commits, imágenes públicas ni logs.
 
-## Desarrollo
+La API guarda el CV en `cvs/<solicitudId>/<nombre-saneado>`. El bucket es privado; `GET /api/solicitudes/:id/cv` genera un enlace firmado válido por 60 segundos.
+
+## Variables de entorno
+
+Copia `.env.example` a `.env` y completa, sin subir el archivo `.env`:
+
+| Variable | Descripción | Predeterminado |
+| --- | --- | --- |
+| `SUPABASE_URL` | URL del proyecto Supabase | Obligatoria |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de Supabase, solo para la API | Obligatoria |
+| `PORT` | Puerto HTTP de la API | `3000` |
+| `CV_BUCKET` | Bucket privado para los CV | `cvs` |
+| `WEB_PORT` | Puerto publicado por el frontend local | `8080` |
+| `VITE_API_PROXY_TARGET` | Destino del proxy `/api/*` de Vite en desarrollo | `http://localhost:3000` |
+
+`.env.example` contiene únicamente valores de ejemplo. Nunca pegues credenciales reales en ese archivo.
+
+## Desarrollo local
+
+Se requiere Node.js 22.
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173
+npm ci
+npm --prefix server ci
+```
+
+Completa el `.env` de la raíz copiándolo desde `.env.example`. El script del servidor carga ese archivo con Node 22; Vite también lo usa para configurar su proxy.
+
+En una terminal, inicia el backend:
+
+```bash
+npm --prefix server run dev
+```
+
+En otra terminal, inicia Vite:
+
+```bash
+npm run dev
+```
+
+El proxy Vite reenvía `/api/*` a `VITE_API_PROXY_TARGET`. Si cambias el destino, usa `.env.local` con esa variable.
+
+Comprobaciones:
+
+```bash
 npm run lint
 npm run build
+npm --prefix server run lint
+npm --prefix server run build
 ```
 
-El formulario envía un `POST` multipart a `/api/evaluaciones/iniciar`. Para apuntarlo a tu backend en desarrollo:
+## Docker Compose
+
+Completa `.env` con las credenciales de Supabase y ejecuta:
 
 ```bash
-cp .env.example .env.local   # ajusta VITE_API_PROXY_TARGET
+docker compose up --build
 ```
 
-El dashboard no muestra métricas ni solicitudes mientras no exista una integración de lectura con datos reales.
+La interfaz queda en `http://localhost:8080` (o el valor de `WEB_PORT`). Nginx sirve la SPA y reenvía `/api/*` a `http://api:3000`; la API no publica un puerto del host. Compose espera a que el healthcheck de la API esté listo antes de iniciar el frontend.
 
-## Base de datos Supabase
+## API
 
-1. Crea un proyecto Supabase y abre **SQL Editor**.
-2. Ejecuta el contenido de `supabase/migrations/0001_init.sql`. La migración crea las tablas `candidatos` y `solicitudes`, habilita RLS sin políticas públicas y crea el bucket privado `cvs`.
-3. En **Project Settings → API**, copia la URL del proyecto y la `service_role` secret key para la configuración local del servidor. Nunca uses esa clave en el frontend ni la subas al repositorio.
+- `GET /api/health` → `{ "status": "ok" }`.
+- `POST /api/evaluaciones/iniciar` → multipart con `candidateName`, `jobFamily`, `jobTitle` y `cv` (PDF/DOC/DOCX, hasta 10 MiB); responde `201 { "id": "..." }`.
+- `GET /api/solicitudes` → solicitudes descendentemente por fecha con las propiedades `id`, `candidateId`, `jobTitle`, `jobFamily`, `owner`, `requestedAt` (`YYYY-MM-DD`) y `status`.
+- `GET /api/candidatos` → `{ id, name }[]`.
+- `GET /api/solicitudes/:id/cv` → `{ "signedUrl": "..." }`, expira en 60 segundos.
 
-El bucket se crea por SQL en esta migración. Si el rol de ejecución no permite escribir en `storage.buckets`, créalo desde **Storage → New bucket** con nombre `cvs` y acceso privado, y vuelve a ejecutar la migración.
+Los errores de la API se responden como JSON `{ "error": "mensaje" }`. Los detalles internos no se exponen al cliente.
 
-## Despliegue
+## Pendiente / fuera de alcance
 
-Es una SPA con rutas del lado del cliente: el hosting debe devolver `index.html` para cualquier ruta (por ejemplo `/admin`).
+- **Riesgo:** `/admin` y la API no tienen autenticación ni autorización. La API permite crear solicitudes y consultar datos/CV a quien pueda alcanzarla. Restringe su exposición hasta implementar autenticación.
+- Generación de carpetas y plantillas automáticas.
+- Pruebas automatizadas. Plan sugerido: pruebas de validación multipart y tamaño/tipo de archivo; pruebas de persistencia y limpieza ante fallas usando un proyecto Supabase efímero; pruebas de endpoints/contrato; luego pruebas de componente de carga/error/reintento del dashboard.
+
+## CI/CD
+
+`ci.yml` ejecuta lint y build del frontend y API y construye ambas imágenes Docker en pull requests y pushes a `develop`/`main`. `cd.yml` publica las imágenes `ghcr.io/<owner>/<repo>/web` y `ghcr.io/<owner>/<repo>/api` en GHCR con tags de rama, versión (`v*`) y SHA. Habilita GitHub Actions para publicar paquetes del repositorio.
