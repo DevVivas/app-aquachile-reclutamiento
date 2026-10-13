@@ -1,9 +1,102 @@
 @import "tailwindcss";
 
 :root {
+  --ui-color-panel: #34495e;
+  --ui-color-text: #f8fafc;
+  --ui-color-muted: #cbd5e1;
+  --ui-color-border: rgb(226 232 240 / 16%);
+  --ui-color-divider: rgb(226 232 240 / 12%);
+  --ui-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  --ui-radius-panel: 14px;
+  --ui-space-panel: 24px;
+
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.ui-panel {
+  padding: var(--ui-space-panel);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-panel);
+  color: var(--ui-color-text);
+  background: var(--ui-color-panel);
+  font-family: var(--ui-font-sans);
+}
+
+.ui-title {
+  margin: 0;
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-sans);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.ui-label {
+  color: var(--ui-color-muted);
+  font-family: var(--ui-font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.ui-value {
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ui-secondary {
+  color: var(--ui-color-muted);
+  font-family: var(--ui-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ui-divider {
+  border: 0;
+  border-top: 1px solid var(--ui-color-divider);
+}
+
+.formulario-background {
+  position: relative;
+  isolation: isolate;
+  background-color: #243746;
+}
+
+.formulario-background::before {
+  position: fixed;
+  z-index: -1;
+  inset: -4px;
+  background-image:
+    linear-gradient(rgb(15 23 42 / 38%), rgb(15 23 42 / 38%)),
+    url("/quienes-somos.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  content: "";
+  filter: blur(2px);
+}
+
+.form-input:user-invalid:not(:focus) {
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgb(248 113 113 / 18%);
+}
+
+.form-input:user-valid:not(:focus) {
+  border-color: #5eead4;
+}
+
+@media (max-width: 640px) {
+  .formulario-background::before {
+    position: absolute;
+  }
 }

@@ -16,27 +16,25 @@ export default function FormularioPage() {
   } = useEvaluacionForm()
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 pb-12 text-slate-900">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-center py-5 sm:py-7">
-        <a
-          href="/"
-          aria-label="AquaChile, ir al inicio"
-          className="rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700"
-        >
-          <img src="/aquachile-logo.webp" alt="AquaChile" className="h-auto w-32 sm:w-36" />
-        </a>
-      </header>
+    <div className="formulario-background min-h-screen px-4 pb-12 text-slate-900">
       <main className="mx-auto mt-8 w-full max-w-xl sm:mt-12">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.24)] sm:p-10">
-          <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
-            <h1 className="text-center text-3xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-4xl">
-              Solicitud de Evaluación
-            </h1>
-          </div>
-
+        <section className="rounded-2xl border border-white/30 bg-slate-950/55 p-6 text-white shadow-[0_20px_60px_-24px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:p-10">
+          <header className="mb-8 flex justify-center">
+            <a
+              href="/"
+              aria-label="AquaChile, ir al inicio"
+              className="rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700"
+            >
+              <img
+                src="/aquachile-logo.webp"
+                alt="AquaChile"
+                className="h-auto w-56 sm:w-64"
+              />
+            </a>
+          </header>
           {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-7">
             <FormField
               label="Nombre Completo del Candidato:"
               htmlFor="candidateName"
@@ -95,14 +93,18 @@ export default function FormularioPage() {
                 required
                 accept=".pdf,.doc,.docx"
                 onChange={handleFileChange}
-                className="block w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 transition-colors file:mr-4 file:rounded-md file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                aria-describedby="cvFile-help"
+                className="form-input block w-full cursor-pointer rounded-lg border border-dashed border-white/50 bg-white/10 px-4 py-3 text-sm text-white shadow-sm transition file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-teal-600 file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-white file:shadow-sm file:transition-colors hover:border-white/70 hover:bg-white/15 file:hover:bg-teal-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
               />
+              <p id="cvFile-help" aria-live="polite" className="text-sm text-slate-200">
+                {formData.cvFile?.name ?? 'Ningún archivo seleccionado'}
+              </p>
             </FormField>
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-lg bg-teal-800 px-4 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-teal-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-2 w-full rounded-lg bg-teal-500 px-4 py-4 text-base font-bold text-white shadow-md shadow-teal-950/25 transition duration-150 hover:-translate-y-0.5 hover:bg-teal-400 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300 active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Creando expediente y carpetas...' : 'Iniciar Evaluación'}
             </button>
