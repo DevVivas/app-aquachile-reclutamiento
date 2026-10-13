@@ -1,6 +1,7 @@
 import FormAlert from './components/FormAlert.jsx'
 import FormField from './components/FormField.jsx'
-import { FAMILIAS_CARGO, INPUT_CLASSNAME } from './constants.js'
+import { JOB_FAMILIES } from '@/constants/jobFamilies.js'
+import { INPUT_CLASSNAME } from './constants.js'
 import { useEvaluacionForm } from './hooks/useEvaluacionForm.js'
 
 export default function FormularioPage() {
@@ -64,7 +65,7 @@ export default function FormularioPage() {
                 <option value="" disabled className="text-gray-400">
                   Selecciona una familia de cargo
                 </option>
-                {FAMILIAS_CARGO.map((family) => (
+                {JOB_FAMILIES.map((family) => (
                   <option key={family} value={family} className="text-gray-900 bg-white">
                     {family}
                   </option>

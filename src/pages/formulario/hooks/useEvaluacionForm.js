@@ -36,7 +36,7 @@ export function useEvaluacionForm() {
 
       setMessage({
         type: 'success',
-        text: 'Solicitud enviada correctamente. Se ha creado la carpeta y las plantillas asociadas.',
+        text: 'Solicitud enviada correctamente.',
       })
 
       setFormData(INITIAL_FORM_STATE)
