@@ -100,4 +100,4 @@ Los errores de la API se responden como JSON `{ "error": "mensaje" }`. Los detal
 
 ## CI/CD
 
-`ci.yml` ejecuta lint y build del frontend y API y construye ambas imágenes Docker en pull requests y pushes a `develop`/`main`. `cd.yml` publica las imágenes `ghcr.io/<owner>/<repo>/web` y `ghcr.io/<owner>/<repo>/api` en GHCR con tags de rama, versión (`v*`) y SHA. Habilita GitHub Actions para publicar paquetes del repositorio.
+`ci.yml` ejecuta lint y build del frontend y API y construye ambas imágenes Docker en pull requests y pushes a `develop`/`main`. `cd.yml` publica el frontend en `ghcr.io/<owner>/<repo>` y la API en `ghcr.io/<owner>/<repo>-api`, conservando para ambas el esquema de tags existente: rama, SHA, versión semántica y `latest` en la rama predeterminada. Habilita GitHub Actions para publicar paquetes del repositorio.
