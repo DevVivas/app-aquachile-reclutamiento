@@ -2,10 +2,16 @@ import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { Router } from 'express'
 import multer from 'multer'
+import { authRouter, requireAuth } from './auth.js'
 import { config } from './config.js'
+import { HttpError } from './errors.js'
+import { hasValidSignature } from './fileSignature.js'
+import { createRateLimiter } from './rateLimit.js'
 import { supabase } from './supabase.js'
 
 const MAX_CV_BYTES = 10 * 1024 * 1024
+const MAX_TEXT_LENGTH = 120
+const SIGNED_URL_SECONDS = 60
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ACCEPTED_CV_TYPES = {
   '.pdf': 'application/pdf',
@@ -18,19 +24,27 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_CV_BYTES, files: 1, fields: 3 },
 })
-
-class HttpError extends Error {
-  constructor(status, message) {
-    super(message)
-    this.status = status
-  }
-}
+const submitLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  message: 'Demasiadas solicitudes desde esta red. Intenta nuevamente más tarde.',
+})
 
 function requireText(value, label) {
   if (typeof value !== 'string' || !value.trim()) {
     throw new HttpError(400, `El campo ${label} es obligatorio.`)
   }
-  return value.trim()
+  const text = value.trim()
+  if (text.length > MAX_TEXT_LENGTH) {
+    throw new HttpError(400, `El campo ${label} no puede superar ${MAX_TEXT_LENGTH} caracteres.`)
+  }
+  return text
+}
+
+function assertUuid(value) {
+  if (!UUID_PATTERN.test(value)) {
+    throw new HttpError(400, 'El identificador no es válido.')
+  }
 }
 
 function sanitizedFilename(originalName) {
@@ -55,35 +69,28 @@ function validateCv(file) {
   if (!ACCEPTED_CV_TYPES[extension] || ACCEPTED_CV_TYPES[extension] !== file.mimetype) {
     throw new HttpError(400, 'El CV debe ser PDF, DOC o DOCX con un tipo de archivo válido.')
   }
+  if (!hasValidSignature(extension, file.buffer)) {
+    throw new HttpError(400, 'El contenido del archivo no corresponde a un PDF, DOC o DOCX válido.')
+  }
 }
 
-async function cleanUpFailedRequest({ candidateId, requestId, cvPath }) {
-  const cleanupErrors = []
-  const runCleanup = async (operation) => {
-    try {
-      const { error } = await operation()
-      if (error) cleanupErrors.push(error)
-    } catch (error) {
-      cleanupErrors.push(error)
-    }
-  }
+async function assertJobFamilyExists(jobFamily) {
+  const { data, error } = await supabase
+    .from('familias_cargo')
+    .select('nombre')
+    .eq('nombre', jobFamily)
+    .maybeSingle()
 
-  if (cvPath) {
-    await runCleanup(() => supabase.storage.from(config.cvBucket).remove([cvPath]))
-  }
+  if (error) throw error
+  if (!data) throw new HttpError(400, 'La familia de cargo no es válida.')
+}
 
-  if (requestId) {
-    await runCleanup(() => supabase.from('solicitudes').delete().eq('id', requestId))
-  }
-
-  if (candidateId) {
-    await runCleanup(() => supabase.from('candidatos').delete().eq('id', candidateId))
-  }
-
-  if (cleanupErrors.length > 0) {
-    console.error(
-      `No fue posible limpiar todos los datos de una solicitud fallida (${cleanupErrors.length} error(es)).`,
-    )
+async function removeUploadedCv(cvPath) {
+  try {
+    const { error } = await supabase.storage.from(config.cvBucket).remove([cvPath])
+    if (error) console.error('No fue posible eliminar un CV huérfano.')
+  } catch {
+    console.error('No fue posible eliminar un CV huérfano.')
   }
 }
 
@@ -91,75 +98,65 @@ router.get('/health', (_request, response) => {
   response.status(200).json({ status: 'ok' })
 })
 
-router.post('/evaluaciones/iniciar', upload.single('cv'), async (request, response, next) => {
-  let candidateId
-  const requestId = randomUUID()
-  let cvPath
+// Público: formulario de solicitud (con límite de frecuencia por IP).
+router.post(
+  '/evaluaciones/iniciar',
+  submitLimiter,
+  upload.single('cv'),
+  async (request, response, next) => {
+    let cvPath
 
-  try {
-    const candidateName = requireText(request.body.candidateName, 'candidateName')
-    const jobFamily = requireText(request.body.jobFamily, 'jobFamily')
-    const jobTitle = requireText(request.body.jobTitle, 'jobTitle')
-    validateCv(request.file)
+    try {
+      const body = request.body ?? {}
+      const candidateName = requireText(body.candidateName, 'candidateName')
+      const jobFamily = requireText(body.jobFamily, 'jobFamily')
+      const jobTitle = requireText(body.jobTitle, 'jobTitle')
+      validateCv(request.file)
+      await assertJobFamilyExists(jobFamily)
 
-    const { data: candidate, error: candidateError } = await supabase
-      .from('candidatos')
-      .insert({ nombre: candidateName })
-      .select('id')
-      .single()
+      // 1) Sube el CV; 2) crea candidato + solicitud + documento en una sola transacción.
+      const requestId = randomUUID()
+      cvPath = `${requestId}/${sanitizedFilename(request.file.originalname)}`
 
-    if (candidateError) throw candidateError
-    candidateId = candidate.id
+      const { error: uploadError } = await supabase.storage
+        .from(config.cvBucket)
+        .upload(cvPath, request.file.buffer, {
+          contentType: request.file.mimetype,
+          upsert: false,
+        })
+      if (uploadError) throw uploadError
 
-    const { error: requestError } = await supabase
-      .from('solicitudes')
-      .insert({
-        id: requestId,
-        candidato_id: candidateId,
-        cargo: jobTitle,
-        familia_cargo: jobFamily,
-        estado: 'Pendiente',
+      const { error: createError } = await supabase.rpc('crear_solicitud', {
+        p_solicitud_id: requestId,
+        p_nombre: candidateName,
+        p_cargo: jobTitle,
+        p_familia_cargo: jobFamily,
+        p_cv_path: cvPath,
+        p_cv_mime: request.file.mimetype,
+        p_cv_size: request.file.size,
       })
+      if (createError) throw createError
 
-    if (requestError) throw requestError
-
-    const filename = sanitizedFilename(request.file.originalname)
-    cvPath = `${requestId}/${filename}`
-    const { error: uploadError } = await supabase.storage
-      .from(config.cvBucket)
-      .upload(cvPath, request.file.buffer, {
-        contentType: request.file.mimetype,
-        upsert: false,
-      })
-
-    if (uploadError) throw uploadError
-
-    const { error: pathError } = await supabase
-      .from('solicitudes')
-      .update({ cv_path: cvPath })
-      .eq('id', requestId)
-
-    if (pathError) throw pathError
-
-    response.status(201).json({ id: requestId })
-  } catch (error) {
-    if (candidateId) {
-      try {
-        await cleanUpFailedRequest({ candidateId, requestId, cvPath })
-      } catch (cleanupError) {
-        console.error('Falló la limpieza de una solicitud incompleta.', cleanupError)
-      }
+      response.status(201).json({ id: requestId })
+    } catch (error) {
+      if (cvPath) await removeUploadedCv(cvPath)
+      next(error)
     }
-    next(error)
-  }
-})
+  },
+)
+
+router.use('/auth', authRouter)
+
+// Desde aquí, todo requiere sesión y un perfil autorizado.
+router.use(requireAuth)
 
 router.get('/solicitudes', async (_request, response, next) => {
   try {
     const { data, error } = await supabase
       .from('solicitudes')
-      .select('id,candidato_id,cargo,familia_cargo,responsable,estado,created_at')
+      .select('id,candidato_id,cargo,familia_cargo,estado,created_at,responsable:profiles(nombre)')
       .order('created_at', { ascending: false })
+      .limit(500)
 
     if (error) throw error
 
@@ -168,7 +165,7 @@ router.get('/solicitudes', async (_request, response, next) => {
       candidateId: solicitud.candidato_id,
       jobTitle: solicitud.cargo,
       jobFamily: solicitud.familia_cargo,
-      owner: solicitud.responsable,
+      owner: solicitud.responsable?.nombre ?? null,
       requestedAt: solicitud.created_at.slice(0, 10),
       status: solicitud.estado,
     })))
@@ -183,6 +180,7 @@ router.get('/candidatos', async (_request, response, next) => {
       .from('candidatos')
       .select('id,nombre')
       .order('created_at', { ascending: false })
+      .limit(500)
 
     if (error) throw error
     response.json(data.map(({ id, nombre }) => ({ id, name: nombre })))
@@ -193,24 +191,23 @@ router.get('/candidatos', async (_request, response, next) => {
 
 router.get('/solicitudes/:id/cv', async (request, response, next) => {
   try {
-    if (!UUID_PATTERN.test(request.params.id)) {
-      throw new HttpError(400, 'El identificador de solicitud no es válido.')
-    }
+    assertUuid(request.params.id)
 
-    const { data: solicitud, error: requestError } = await supabase
-      .from('solicitudes')
-      .select('cv_path')
-      .eq('id', request.params.id)
+    const { data: documento, error: documentError } = await supabase
+      .from('documentos')
+      .select('bucket,storage_path')
+      .eq('solicitud_id', request.params.id)
+      .eq('tipo', 'cv')
       .maybeSingle()
 
-    if (requestError) throw requestError
-    if (!solicitud?.cv_path) {
+    if (documentError) throw documentError
+    if (!documento) {
       throw new HttpError(404, 'No se encontró el CV de esta solicitud.')
     }
 
     const { data, error } = await supabase.storage
-      .from(config.cvBucket)
-      .createSignedUrl(solicitud.cv_path, 60)
+      .from(documento.bucket)
+      .createSignedUrl(documento.storage_path, SIGNED_URL_SECONDS)
 
     if (error) throw error
     response.json({ signedUrl: data.signedUrl })
@@ -219,4 +216,46 @@ router.get('/solicitudes/:id/cv', async (request, response, next) => {
   }
 })
 
-export { HttpError, router }
+router.get('/plantillas', async (_request, response, next) => {
+  try {
+    const { data, error } = await supabase
+      .from('plantillas')
+      .select('id,nombre,version')
+      .eq('activa', true)
+      .order('nombre', { ascending: true })
+
+    if (error) throw error
+    response.json(data.map(({ id, nombre, version }) => ({ id, name: nombre, version })))
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/plantillas/:id/descarga', async (request, response, next) => {
+  try {
+    assertUuid(request.params.id)
+
+    const { data: plantilla, error: templateError } = await supabase
+      .from('plantillas')
+      .select('storage_path')
+      .eq('id', request.params.id)
+      .eq('activa', true)
+      .maybeSingle()
+
+    if (templateError) throw templateError
+    if (!plantilla) {
+      throw new HttpError(404, 'No se encontró la plantilla.')
+    }
+
+    const { data, error } = await supabase.storage
+      .from(config.templatesBucket)
+      .createSignedUrl(plantilla.storage_path, SIGNED_URL_SECONDS, { download: true })
+
+    if (error) throw error
+    response.json({ signedUrl: data.signedUrl })
+  } catch (error) {
+    next(error)
+  }
+})
+
+export { router }

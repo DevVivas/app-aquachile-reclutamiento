@@ -1,5 +1,8 @@
 async function getJson(url, signal) {
   const response = await fetch(url, { signal })
+  if (response.status === 401) {
+    throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.')
+  }
   let payload
   try {
     payload = await response.json()
