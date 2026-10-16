@@ -1,102 +1,197 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  --ui-color-panel: #34495e;
-  --ui-color-text: #f8fafc;
-  --ui-color-muted: #cbd5e1;
-  --ui-color-border: rgb(226 232 240 / 16%);
-  --ui-color-divider: rgb(226 232 240 / 12%);
-  --ui-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
-  --ui-radius-panel: 14px;
-  --ui-space-panel: 24px;
+  --ui-color-canvas: #f4f6f8;
+  --ui-color-surface: #fff;
+  --ui-color-surface-muted: #f8fafc;
+  --ui-color-primary: #d94e1f;
+  --ui-color-primary-hover: #c03f14;
+  --ui-color-primary-active: #a8350f;
+  --ui-color-slate: #2e3e48;
+  --ui-color-slate-light: #3a4d59;
+  --ui-color-tertiary: #4a6070;
+  --ui-color-text: #1a252c;
+  --ui-color-muted: #5a6570;
+  --ui-color-border: #d1d5db;
+  --ui-color-error: #dc2626;
+  --ui-color-divider: #e5e7eb;
+  --ui-font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --ui-radius-control: 6px;
+  --ui-radius-card: 8px;
+  --ui-space-card: 36px;
+  --ui-shadow-card: 0 4px 20px -2px rgb(46 62 72 / 8%), 0 2px 6px -1px rgb(46 62 72 / 4%);
 
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-family: var(--ui-font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.ui-panel {
-  padding: var(--ui-space-panel);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-panel);
-  color: var(--ui-color-text);
-  background: var(--ui-color-panel);
-  font-family: var(--ui-font-sans);
+html,
+body,
+#root {
+  min-height: 100%;
 }
 
-.ui-title {
+body {
   margin: 0;
-  color: var(--ui-color-text);
-  font-family: var(--ui-font-sans);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-.ui-label {
-  color: var(--ui-color-muted);
-  font-family: var(--ui-font-sans);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.ui-value {
-  color: var(--ui-color-text);
-  font-family: var(--ui-font-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.ui-secondary {
-  color: var(--ui-color-muted);
-  font-family: var(--ui-font-sans);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.ui-divider {
-  border: 0;
-  border-top: 1px solid var(--ui-color-divider);
+  background-color: #fff;
 }
 
 .formulario-background {
-  position: relative;
-  isolation: isolate;
-  background-color: #243746;
+  min-height: 100vh;
+  background: #fff;
 }
 
-.formulario-background::before {
-  position: fixed;
-  z-index: -1;
-  inset: -4px;
-  background-image:
-    linear-gradient(rgb(15 23 42 / 38%), rgb(15 23 42 / 38%)),
-    url("/quienes-somos.webp");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  content: "";
-  filter: blur(2px);
+.form-card {
+  border: 1px solid rgb(255 255 255 / 60%);
+  border-radius: 1rem;
+  background: linear-gradient(
+    to bottom right,
+    rgb(255 255 255 / 45%),
+    rgb(224 242 254 / 25%),
+    rgb(191 219 254 / 30%)
+  );
+  padding: 1.5rem;
+  color: #0f172a;
+  box-shadow: 0 24px 64px -28px rgb(15 23 42 / 42%);
+  backdrop-filter: blur(40px);
+}
+
+@media (min-width: 640px) {
+  .form-card {
+    padding: 2.5rem;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--ui-radius-control);
+  background-color: #fff;
+  color: #1e293b;
+  font: 400 1rem/1.5 var(--ui-font-sans);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-input::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.form-input:hover:not(:focus-visible) {
+  border-color: #cbd5e1;
+}
+
+.form-input:focus {
+  outline: 0;
+}
+
+.form-input:focus-visible {
+  border-color: var(--ui-color-primary);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgb(217 78 31 / 18%);
+}
+
+.file-picker {
+  position: relative;
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--ui-radius-control);
+  background: #fff;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.file-picker:hover {
+  border-color: #9ca3af;
+}
+
+.file-picker:focus-within {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgb(217 78 31 / 18%);
+}
+
+.file-picker-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.file-picker-input:focus-visible {
+  outline: 0;
+}
+
+.file-picker-button {
+  display: inline-flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--ui-color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.file-picker-button:hover {
+  background: var(--ui-color-primary-hover);
+}
+
+.file-picker-name {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ui-color-text);
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .form-input:user-invalid:not(:focus) {
-  border-color: #fca5a5;
-  box-shadow: 0 0 0 3px rgb(248 113 113 / 18%);
+  border-color: var(--ui-color-error);
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 15%);
 }
 
-.form-input:user-valid:not(:focus) {
-  border-color: #5eead4;
+.ui-button-primary {
+  border: 1px solid var(--ui-color-primary);
+  border-radius: 6px;
+  color: #fff;
+  background: var(--ui-color-primary);
+  font-family: var(--ui-font-sans);
+  font-weight: 600;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
-@media (max-width: 640px) {
-  .formulario-background::before {
-    position: absolute;
-  }
+.ui-button-primary:hover {
+  background: var(--ui-color-primary-hover);
+}
+
+.ui-button-primary:active {
+  background: var(--ui-color-primary-active);
+}
+
+.ui-button-primary:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgb(217 78 31 / 25%);
+}
+
+.ui-button-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
