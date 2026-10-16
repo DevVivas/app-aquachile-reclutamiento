@@ -4,5 +4,4 @@ export const REQUEST_STATUS = {
   FINISHED: 'Finalizada',
 }
 
-// Valor del filtro que muestra todas las solicitudes
 export const STATUS_FILTER_ALL = 'Todos'

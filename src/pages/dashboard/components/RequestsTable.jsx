@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom'
-import { adminRequestDetailPath } from '@/constants/routes.js'
 import { formatDate } from '@/utils/formatDate.js'
 import StatusBadge from './StatusBadge.jsx'
 
@@ -21,20 +19,20 @@ export default function RequestsTable({ requests, candidateById }) {
           {requests.map((request) => (
             <tr key={request.id}>
               <td>
-                <Link className="candidate-link" to={adminRequestDetailPath(request.id)}>
-                  {candidateById[request.candidateId]?.name ?? 'Candidato'}
-                </Link>
+                {candidateById[request.candidateId]?.name ?? 'Candidato'}
               </td>
               <td>{request.jobTitle}</td>
-              <td><span className="family-name">{request.jobFamily}</span></td>
-              <td>{request.owner}</td>
-              <td className="date-cell">{formatDate(request.requestedAt)}</td>
+              <td>{request.jobFamily}</td>
+              <td>{request.owner || '—'}</td>
+              <td>{formatDate(request.requestedAt)}</td>
               <td><StatusBadge status={request.status} /></td>
             </tr>
           ))}
         </tbody>
       </table>
-      {requests.length === 0 && <p className="empty-state">No hay solicitudes para este estado.</p>}
+      {requests.length === 0 && (
+        <p className="empty-state">No hay solicitudes para este estado.</p>
+      )}
     </div>
   )
 }

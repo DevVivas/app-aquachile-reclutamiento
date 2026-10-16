@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      CV_BUCKET: ${CV_BUCKET:-cvs}
+      TEMPLATES_BUCKET: ${TEMPLATES_BUCKET:-plantillas}
+      # Compose local usa http://localhost: las cookies Secure no se enviarían.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_URL: http://api:3000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped

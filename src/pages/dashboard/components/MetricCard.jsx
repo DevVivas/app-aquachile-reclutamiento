@@ -1,4 +1,4 @@
-export default function MetricCard({ label, value, detail, tone, active, onClick }) {
+export default function MetricCard({ label, value, detail, active, onClick }) {
   return (
     <button
       type="button"
@@ -6,7 +6,7 @@ export default function MetricCard({ label, value, detail, tone, active, onClick
       aria-pressed={active}
       onClick={onClick}
     >
-      <div className={`metric-mark ${tone}`} aria-hidden="true" />
+      <div className="metric-mark" aria-hidden="true" />
       <p className="metric-label">{label}</p>
       <div className="metric-bottom">
         <strong className="metric-value">{value}</strong>

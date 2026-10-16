@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-build:
+    name: Lint y build del frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  server:
+    name: Lint y build del servidor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  docker-build:
+    name: Construir imágenes Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint-build, server]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend image (sin publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build API image (sin publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

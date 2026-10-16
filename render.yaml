@@ -1,0 +1,21 @@
+# Blueprint de Render: un solo servicio (SPA + API) en US East (Virginia),
+# misma región que un proyecto Supabase en East US (North Virginia).
+services:
+  - type: web
+    name: aquachile-reclutamiento
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    region: virginia
+    plan: starter # 'free' se duerme tras inactividad y el primer acceso tarda
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false

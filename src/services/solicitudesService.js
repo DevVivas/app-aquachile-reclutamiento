@@ -1,10 +1,26 @@
-import { candidates, requests } from './mock/mockData.js'
+async function getJson(url, signal) {
+  const response = await fetch(url, { signal })
+  if (response.status === 401) {
+    throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.')
+  }
+  let payload
+  try {
+    payload = await response.json()
+  } catch {
+    throw new Error('El servidor devolvió una respuesta no válida.')
+  }
 
-// TODO: reemplazar por llamadas HTTP cuando exista el backend.
-export function getRequests() {
-  return requests
+  if (!response.ok) {
+    throw new Error(payload?.error || 'No fue posible cargar la información.')
+  }
+
+  return payload
 }
 
-export function getCandidates() {
-  return candidates
+export function getRequests({ signal } = {}) {
+  return getJson('/api/solicitudes', signal)
+}
+
+export function getCandidates({ signal } = {}) {
+  return getJson('/api/candidatos', signal)
 }

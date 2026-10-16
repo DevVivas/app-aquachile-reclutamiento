@@ -1,6 +1,7 @@
 import FormAlert from './components/FormAlert.jsx'
 import FormField from './components/FormField.jsx'
-import { FAMILIAS_CARGO, INPUT_CLASSNAME } from './constants.js'
+import { JOB_FAMILIES } from '@/constants/jobFamilies.js'
+import { INPUT_CLASSNAME } from './constants.js'
 import { useEvaluacionForm } from './hooks/useEvaluacionForm.js'
 
 export default function FormularioPage() {
@@ -15,82 +16,100 @@ export default function FormularioPage() {
   } = useEvaluacionForm()
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
-      <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-md border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-          Solicitud de Evaluación Psicolaboral
-        </h2>
-        <p className="text-sm text-gray-500 mb-6 text-center leading-relaxed">
-          Ingresa los antecedentes del candidato para generar el entorno y las plantillas automáticas.
-        </p>
+    <div className="formulario-background min-h-screen px-4 pb-12 text-slate-900">
+      <main className="mx-auto mt-8 w-full max-w-xl sm:mt-12">
+        <section className="form-card">
+          <header className="mb-8 flex justify-center">
+            <a
+              href="/"
+              aria-label="AquaChile, ir al inicio"
+              className="rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700"
+            >
+              <img
+                src="/aquachile-logo.webp"
+                alt="AquaChile"
+                className="h-auto w-56 sm:w-64"
+              />
+            </a>
+          </header>
+          {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
 
-        {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <FormField label="Nombre Completo del Candidato:">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <input
+              id="candidateName"
               type="text"
               name="candidateName"
               required
-              placeholder="Ej: Juan Pérez Martínez"
+              aria-label="Nombre completo del candidato"
+              placeholder="Nombre completo del candidato"
               value={formData.candidateName}
               onChange={handleInputChange}
               className={INPUT_CLASSNAME}
             />
-          </FormField>
 
-          <FormField label="Familia de Cargo:">
             <select
+              id="jobFamily"
               name="jobFamily"
               required
+              aria-label="Familia del cargo"
               value={formData.jobFamily}
               onChange={handleInputChange}
               className={INPUT_CLASSNAME}
             >
               <option value="" disabled className="text-gray-400">
-                Selecciona una familia de cargo
+                Familia del cargo
               </option>
-              {FAMILIAS_CARGO.map((family) => (
+              {JOB_FAMILIES.map((family) => (
                 <option key={family} value={family} className="text-gray-900 bg-white">
                   {family}
                 </option>
               ))}
             </select>
-          </FormField>
 
-          <FormField label="Nombre del Cargo:">
             <input
+              id="jobTitle"
               type="text"
               name="jobTitle"
               required
-              placeholder="Ej: Analista de Procesos"
+              aria-label="Nombre del cargo"
+              placeholder="Nombre del cargo"
               value={formData.jobTitle}
               onChange={handleInputChange}
               className={INPUT_CLASSNAME}
             />
-          </FormField>
 
-          <FormField label="Curriculum Vitae (PDF o Word):">
-            <input
-              ref={fileInputRef}
-              type="file"
-              name="cvFile"
-              required
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-            />
-          </FormField>
+            <FormField label="Curriculum Vitae (PDF o Word):" htmlFor="cvFile">
+              <div className="file-picker">
+                <input
+                  id="cvFile"
+                  ref={fileInputRef}
+                  type="file"
+                  name="cvFile"
+                  required
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  aria-describedby="cvFile-help"
+                  className="file-picker-input"
+                />
+                <label className="file-picker-button" htmlFor="cvFile">
+                  Seleccionar archivo
+                </label>
+                <p id="cvFile-help" aria-live="polite" className="file-picker-name">
+                  {formData.cvFile?.name ?? 'Ningún archivo seleccionado'}
+                </p>
+              </div>
+            </FormField>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-          >
-            {loading ? 'Creando expediente y carpetas...' : 'Iniciar Evaluación'}
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="ui-button-primary mt-2 w-full px-4 py-4 text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.99]"
+            >
+              {loading ? 'Creando expediente y carpetas...' : 'Iniciar Evaluación'}
+            </button>
+          </form>
+        </section>
+      </main>
     </div>
   )
 }

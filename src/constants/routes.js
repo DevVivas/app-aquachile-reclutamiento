@@ -1,7 +1,5 @@
 export const ROUTES = {
   HOME: '/',
+  LOGIN: '/login',
   ADMIN: '/admin',
-  ADMIN_REQUEST_DETAIL: '/admin/solicitudes/:id',
 }
-
-export const adminRequestDetailPath = (id) => `/admin/solicitudes/${id}`
