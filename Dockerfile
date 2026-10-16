@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime ----
-FROM nginx:1.28-alpine AS runtime
+FROM nginx:1.29-alpine AS runtime
 # nginx procesa /etc/nginx/templates/*.template y reemplaza las variables de entorno al iniciar
 ENV BACKEND_URL=http://backend:8000
 COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
