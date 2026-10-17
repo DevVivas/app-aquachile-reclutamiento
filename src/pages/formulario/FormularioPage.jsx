@@ -1,7 +1,16 @@
+import { useEffect, useRef } from 'react'
 import FormAlert from './components/FormAlert.jsx'
 import FormField from './components/FormField.jsx'
+import ValidatedTextInput from './components/ValidatedTextInput.jsx'
 import { JOB_FAMILIES } from '@/constants/jobFamilies.js'
-import { INPUT_CLASSNAME } from './constants.js'
+import {
+  CANDIDATE_NAME_MAX_LENGTH,
+  CANDIDATE_NAME_MIN_LENGTH,
+  JOB_TITLE_MIN_LENGTH,
+  JOB_TITLE_MAX_LENGTH,
+  validateCandidateName,
+  validateJobTitle,
+} from './constants.js'
 import { useEvaluacionForm } from './hooks/useEvaluacionForm.js'
 
 export default function FormularioPage() {
@@ -9,15 +18,27 @@ export default function FormularioPage() {
     formData,
     loading,
     message,
+    success,
     fileInputRef,
     handleInputChange,
+    handleBlur,
     handleFileChange,
     handleSubmit,
+    closeSuccess,
+    validationErrors,
   } = useEvaluacionForm()
+  const successDialogRef = useRef(null)
+
+  useEffect(() => {
+    if (success && successDialogRef.current && !successDialogRef.current.open) {
+      successDialogRef.current.showModal()
+    }
+  }, [success])
 
   return (
-    <div className="formulario-background min-h-screen px-4 pb-12 text-slate-900">
-      <main className="mx-auto mt-8 w-full max-w-xl sm:mt-12">
+    <div className="formulario-background flex min-h-screen flex-col text-slate-900">
+      <img src="/barra.png" alt="" aria-hidden="true" className="block h-auto w-full" />
+      <main className="relative z-10 mx-auto mt-8 w-full max-w-xl flex-1 px-4 pb-12 sm:mt-12">
         <section className="form-card">
           <header className="mb-8 flex justify-center">
             <a
@@ -34,17 +55,22 @@ export default function FormularioPage() {
           </header>
           {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <input
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+            <ValidatedTextInput
               id="candidateName"
-              type="text"
               name="candidateName"
-              required
               aria-label="Nombre completo del candidato"
               placeholder="Nombre completo del candidato"
               value={formData.candidateName}
+              minLength={CANDIDATE_NAME_MIN_LENGTH}
+              maxLength={CANDIDATE_NAME_MAX_LENGTH}
+              isValid={
+                formData.candidateName.trim().length > 0 &&
+                !validateCandidateName(formData.candidateName)
+              }
+              validationError={validationErrors.candidateName}
               onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
+              onBlur={handleBlur}
             />
 
             <select
@@ -54,7 +80,7 @@ export default function FormularioPage() {
               aria-label="Familia del cargo"
               value={formData.jobFamily}
               onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
+              className="form-input"
             >
               <option value="" disabled className="text-gray-400">
                 Familia del cargo
@@ -66,16 +92,21 @@ export default function FormularioPage() {
               ))}
             </select>
 
-            <input
+            <ValidatedTextInput
               id="jobTitle"
-              type="text"
               name="jobTitle"
-              required
               aria-label="Nombre del cargo"
               placeholder="Nombre del cargo"
               value={formData.jobTitle}
+              minLength={JOB_TITLE_MIN_LENGTH}
+              maxLength={JOB_TITLE_MAX_LENGTH}
+              isValid={
+                formData.jobTitle.trim().length > 0 &&
+                !validateJobTitle(formData.jobTitle)
+              }
+              validationError={validationErrors.jobTitle}
               onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
+              onBlur={handleBlur}
             />
 
             <FormField label="Curriculum Vitae (PDF o Word):" htmlFor="cvFile">
@@ -110,6 +141,32 @@ export default function FormularioPage() {
           </form>
         </section>
       </main>
+      <dialog
+        ref={successDialogRef}
+        className="success-dialog"
+        aria-labelledby="success-dialog-title"
+        onClose={closeSuccess}
+      >
+        <div className="success-dialog-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="m6 12.5 4 4L18.5 8" />
+          </svg>
+        </div>
+        <h2 id="success-dialog-title">Solicitud enviada</h2>
+        <p>Tu solicitud se ha enviado correctamente.</p>
+        <button
+          type="button"
+          autoFocus
+          className="ui-button-primary success-dialog-button"
+          onClick={() => successDialogRef.current?.close()}
+        >
+          Aceptar
+        </button>
+      </dialog>
+      <footer className="landscape-footer">
+        <img src="/paisaje.png" alt="" aria-hidden="true" className="block h-auto w-full" />
+        <img src="/barra.png" alt="" aria-hidden="true" className="landscape-footer-bar" />
+      </footer>
     </div>
   )
 }
