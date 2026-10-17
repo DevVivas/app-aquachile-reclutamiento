@@ -1,16 +1,36 @@
 import { useRef, useState } from 'react'
 import { iniciarEvaluacion } from '@/services/evaluacionesService.js'
-import { INITIAL_FORM_STATE } from '../constants.js'
+import {
+  capitalizeJobTitle,
+  capitalizeName,
+  INITIAL_FORM_STATE,
+  validateCandidateName,
+  validateJobTitle,
+} from '../constants.js'
 
 export function useEvaluacionForm() {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
+  const [touched, setTouched] = useState({})
+  const [submitted, setSubmitted] = useState(false)
+  const [success, setSuccess] = useState(false)
   const fileInputRef = useRef(null)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const normalizedValue =
+      name === 'candidateName'
+        ? capitalizeName(value)
+        : name === 'jobTitle'
+          ? capitalizeJobTitle(value)
+          : value
+
+    setFormData((prev) => ({ ...prev, [name]: normalizedValue }))
+  }
+
+  const handleBlur = (e) => {
+    setTouched((prev) => ({ ...prev, [e.target.name]: true }))
   }
 
   const handleFileChange = (e) => {
@@ -22,9 +42,19 @@ export function useEvaluacionForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitted(true)
 
-    if (!formData.cvFile) {
-      setMessage({ type: 'error', text: 'Por favor, adjunta el CV del candidato.' })
+    const nameError = validateCandidateName(formData.candidateName)
+    const titleError = validateJobTitle(formData.jobTitle)
+    if (nameError || titleError) {
+      return
+    }
+
+    if (!formData.jobFamily || !formData.cvFile) {
+      setMessage({
+        type: 'error',
+        text: 'Completa todos los campos y adjunta el CV del candidato.',
+      })
       return
     }
 
@@ -34,12 +64,10 @@ export function useEvaluacionForm() {
     try {
       await iniciarEvaluacion(formData)
 
-      setMessage({
-        type: 'success',
-        text: 'Solicitud enviada correctamente.',
-      })
-
+      setSuccess(true)
       setFormData(INITIAL_FORM_STATE)
+      setTouched({})
+      setSubmitted(false)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -57,9 +85,22 @@ export function useEvaluacionForm() {
     formData,
     loading,
     message,
+    success,
     fileInputRef,
     handleInputChange,
+    handleBlur,
     handleFileChange,
     handleSubmit,
+    closeSuccess: () => setSuccess(false),
+    validationErrors: {
+      candidateName:
+        touched.candidateName || submitted
+          ? validateCandidateName(formData.candidateName)
+          : '',
+      jobTitle:
+        touched.jobTitle || submitted
+          ? validateJobTitle(formData.jobTitle)
+          : '',
+    },
   }
 }

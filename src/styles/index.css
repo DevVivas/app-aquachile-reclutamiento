@@ -45,6 +45,29 @@ body {
   background: #fff;
 }
 
+.landscape-footer {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  margin-top: -22rem;
+}
+
+.landscape-footer::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 38%;
+  background: linear-gradient(to bottom, #fff 0%, rgb(255 255 255 / 0%) 100%);
+  content: "";
+  pointer-events: none;
+}
+
+.landscape-footer-bar {
+  display: block;
+  width: 100%;
+  height: 7rem;
+  object-fit: cover;
+}
+
 .form-card {
   border: 1px solid rgb(255 255 255 / 60%);
   border-radius: 1rem;
@@ -94,6 +117,61 @@ body {
   border-color: var(--ui-color-primary);
   outline: 0;
   box-shadow: 0 0 0 3px rgb(217 78 31 / 18%);
+}
+
+.validated-input-wrap {
+  position: relative;
+}
+
+.validated-input-wrap .form-input {
+  padding-right: 44px;
+}
+
+.validated-input-wrap.is-valid .form-input {
+  border-color: #16a34a;
+}
+
+.validated-input-wrap.is-valid .form-input:focus-visible {
+  box-shadow: 0 0 0 3px rgb(22 163 74 / 16%);
+}
+
+.validated-input-wrap.is-invalid .form-input,
+.validated-input-wrap.is-invalid .form-input:focus-visible {
+  border-color: var(--ui-color-error);
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 12%);
+}
+
+.field-valid-check {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #16a34a;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.field-valid-check svg,
+.success-dialog-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.field-error {
+  margin: 4px 0 0;
+  color: var(--ui-color-error);
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .file-picker {
@@ -194,4 +272,56 @@ body {
 .ui-button-primary:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.success-dialog {
+  width: min(400px, calc(100% - 32px));
+  padding: 28px;
+  border: 1px solid var(--ui-color-divider);
+  border-radius: var(--ui-radius-card);
+  color: var(--ui-color-text);
+  background: #fff;
+  box-shadow: 0 10px 25px -5px rgb(46 62 72 / 18%);
+  text-align: center;
+}
+
+.success-dialog::backdrop {
+  background: rgb(26 37 44 / 42%);
+  backdrop-filter: blur(2px);
+}
+
+.success-dialog-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  place-items: center;
+  border-radius: 50%;
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.success-dialog-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.success-dialog h2 {
+  margin: 0;
+  color: var(--ui-color-slate);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+.success-dialog p {
+  margin: 8px 0 20px;
+  color: var(--ui-color-muted);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.success-dialog-button {
+  min-width: 120px;
+  padding: 10px 20px;
 }
