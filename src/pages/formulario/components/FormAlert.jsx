@@ -5,7 +5,10 @@ const VARIANTS = {
 
 export default function FormAlert({ type, children }) {
   return (
-    <div className={`p-3 rounded-lg mb-5 text-sm font-medium ${VARIANTS[type] ?? VARIANTS.error}`}>
+    <div
+      role={type === 'success' ? 'status' : 'alert'}
+      className={`mb-6 rounded-lg px-3.5 py-2.5 text-sm font-medium ${VARIANTS[type] ?? VARIANTS.error}`}
+    >
       {children}
     </div>
   )

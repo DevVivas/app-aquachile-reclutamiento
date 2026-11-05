@@ -1,7 +1,8 @@
 export default function ValidatedTextInput({
   id,
   name,
-  ariaLabel,
+  label,
+  hint,
   placeholder,
   value,
   minLength,
@@ -13,9 +14,14 @@ export default function ValidatedTextInput({
 }) {
   const invalid = Boolean(validationError)
   const feedbackId = `${id}-feedback`
+  const hintId = `${id}-hint`
+  const describedBy = [invalid && feedbackId, hint && hintId].filter(Boolean).join(' ')
 
   return (
     <div className="validated-field">
+      <label htmlFor={id} className="field-label">
+        {label}
+      </label>
       <div className={`validated-input-wrap${invalid ? ' is-invalid' : ''}${isValid ? ' is-valid' : ''}`}>
         <input
           id={id}
@@ -24,9 +30,8 @@ export default function ValidatedTextInput({
           required
           minLength={minLength}
           maxLength={maxLength}
-          aria-label={ariaLabel}
           aria-invalid={invalid}
-          aria-describedby={invalid ? feedbackId : undefined}
+          aria-describedby={describedBy || undefined}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -34,13 +39,18 @@ export default function ValidatedTextInput({
           className="form-input"
         />
         {isValid && !invalid && (
-          <span className="field-valid-check" aria-label="Correcto">
+          <span className="field-valid-check" role="img" aria-label="Correcto">
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="m5 10 3.2 3.2L15.5 6" />
             </svg>
           </span>
         )}
       </div>
+      {hint && !invalid && (
+        <p id={hintId} className="field-hint">
+          {hint}
+        </p>
+      )}
       {invalid && (
         <p id={feedbackId} className="field-error" role="alert">
           {validationError}

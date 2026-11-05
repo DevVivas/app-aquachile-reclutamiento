@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const destination = location.state?.from || ROUTES.ADMIN
 
@@ -39,13 +40,19 @@ export default function LoginPage() {
     <div className="formulario-background flex min-h-screen flex-col text-slate-900">
       <img src="/barra.png" alt="" aria-hidden="true" className="block h-auto w-full" />
       <main className="relative z-10 mx-auto mt-8 w-full max-w-xl flex-1 px-4 pb-12 sm:mt-12">
-        <section className="form-card sm:min-h-[653px]">
-          <header className="mb-8 flex justify-center">
+        <section className="form-card">
+          <header className="mb-8 text-center">
             <img
               src="/aquachile-logo.webp"
               alt="AquaChile"
-              className="h-auto w-56 sm:w-64"
+              className="mx-auto mb-6 h-auto w-56 sm:w-64"
             />
+            <h1 className="m-0 text-xl font-semibold leading-7 text-[var(--ui-color-slate)]">
+              Acceso administración
+            </h1>
+            <p className="mt-1 text-sm text-[var(--ui-color-muted)]">
+              Ingresa con tu cuenta para gestionar las solicitudes.
+            </p>
           </header>
 
           {error && (
@@ -57,35 +64,56 @@ export default function LoginPage() {
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <input
-              className="form-input"
-              type="email"
-              name="email"
-              aria-label="Correo"
-              autoComplete="username"
-              placeholder="Correo"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
+          <form onSubmit={handleSubmit} aria-busy={submitting} className="flex flex-col gap-6">
+            <div>
+              <label htmlFor="email" className="field-label">
+                Correo
+              </label>
+              <input
+                id="email"
+                className="form-input"
+                type="email"
+                name="email"
+                autoComplete="username"
+                placeholder="nombre@empresa.cl"
+                value={form.email}
+                onChange={handleChange}
+                aria-invalid={Boolean(error)}
+                required
+              />
+            </div>
 
-            <input
-              className="form-input"
-              type="password"
-              name="password"
-              aria-label="Contraseña"
-              autoComplete="current-password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <label htmlFor="password" className="field-label">
+                Contraseña
+              </label>
+              <div className="validated-input-wrap">
+                <input
+                  id="password"
+                  className="form-input"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(error)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                >
+                  {showPassword ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
+            </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="ui-button-primary mt-2 w-full px-4 py-4 text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.99]"
+              className="ui-button-primary mt-2 w-full px-4 py-3.5 text-base"
             >
               {submitting ? 'Ingresando…' : 'Ingresar'}
             </button>

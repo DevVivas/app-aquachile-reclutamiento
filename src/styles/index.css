@@ -99,6 +99,10 @@ body {
   opacity: 1;
 }
 
+.form-input[aria-invalid="true"] {
+  border-color: var(--ui-color-error);
+}
+
 .form-input:hover:not(:focus-visible) {
   border-color: #cbd5e1;
 }
@@ -135,6 +139,32 @@ body {
   box-shadow: 0 0 0 3px rgb(220 38 38 / 12%);
 }
 
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  color: var(--ui-color-primary-hover);
+  background: none;
+  font: 600 12px/16px var(--ui-font-sans);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  text-decoration: underline;
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--ui-color-primary);
+}
+
+.validated-input-wrap:has(.password-toggle) .form-input {
+  padding-right: 76px;
+}
+
 .field-valid-check {
   position: absolute;
   top: 50%;
@@ -159,6 +189,22 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.5;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ui-color-text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.field-hint {
+  margin: 4px 0 0;
+  color: var(--ui-color-muted);
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .field-error {
@@ -318,4 +364,13 @@ body {
 .success-dialog-button {
   min-width: 120px;
   padding: 10px 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-input,
+  .file-picker,
+  .file-picker-button,
+  .ui-button-primary {
+    transition-duration: 0.01ms;
+  }
 }
