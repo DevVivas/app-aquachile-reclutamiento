@@ -63,9 +63,14 @@ export default function DashboardPage() {
       </section>
 
       {loading && (
-        <section className="dashboard-notice" role="status">
-          <p>Cargando solicitudes y candidatos…</p>
-        </section>
+        <div role="status" aria-label="Cargando solicitudes y candidatos">
+          <div className="metrics-grid" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="skeleton skeleton-card" />
+            ))}
+          </div>
+          <div className="skeleton skeleton-table" aria-hidden="true" />
+        </div>
       )}
 
       {!loading && error && (
@@ -129,6 +134,7 @@ export default function DashboardPage() {
             <RequestsTable
               requests={filteredRequests}
               candidateById={candidateById}
+              hasAny={requests.length > 0}
             />
 
             <footer className="table-footer">
@@ -137,10 +143,6 @@ export default function DashboardPage() {
           </section>
         </>
       )}
-
-      <footer className="page-footer">
-        AquaChile <span>·</span> Gestión de evaluaciones psicolaborales
-      </footer>
     </div>
   )
 }

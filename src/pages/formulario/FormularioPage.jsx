@@ -59,8 +59,9 @@ export default function FormularioPage() {
             <ValidatedTextInput
               id="candidateName"
               name="candidateName"
-              aria-label="Nombre completo del candidato"
-              placeholder="Nombre completo del candidato"
+              label="Nombre completo del candidato"
+              hint={`Entre ${CANDIDATE_NAME_MIN_LENGTH} y ${CANDIDATE_NAME_MAX_LENGTH} caracteres.`}
+              placeholder="Ej. María González Pérez"
               value={formData.candidateName}
               minLength={CANDIDATE_NAME_MIN_LENGTH}
               maxLength={CANDIDATE_NAME_MAX_LENGTH}
@@ -73,30 +74,31 @@ export default function FormularioPage() {
               onBlur={handleBlur}
             />
 
-            <select
-              id="jobFamily"
-              name="jobFamily"
-              required
-              aria-label="Familia del cargo"
-              value={formData.jobFamily}
-              onChange={handleInputChange}
-              className="form-input"
-            >
-              <option value="" disabled className="text-gray-400">
-                Familia del cargo
-              </option>
-              {JOB_FAMILIES.map((family) => (
-                <option key={family} value={family} className="text-gray-900 bg-white">
-                  {family}
+            <FormField label="Familia del cargo" htmlFor="jobFamily">
+              <select
+                id="jobFamily"
+                name="jobFamily"
+                required
+                value={formData.jobFamily}
+                onChange={handleInputChange}
+                className="form-input"
+              >
+                <option value="" disabled>
+                  Selecciona una familia
                 </option>
-              ))}
-            </select>
+                {JOB_FAMILIES.map((family) => (
+                  <option key={family} value={family}>
+                    {family}
+                  </option>
+                ))}
+              </select>
+            </FormField>
 
             <ValidatedTextInput
               id="jobTitle"
               name="jobTitle"
-              aria-label="Nombre del cargo"
-              placeholder="Nombre del cargo"
+              label="Nombre del cargo"
+              placeholder="Ej. Jefe de Planta"
               value={formData.jobTitle}
               minLength={JOB_TITLE_MIN_LENGTH}
               maxLength={JOB_TITLE_MAX_LENGTH}
@@ -109,7 +111,7 @@ export default function FormularioPage() {
               onBlur={handleBlur}
             />
 
-            <FormField label="Curriculum Vitae (PDF o Word):" htmlFor="cvFile">
+            <FormField label="Curriculum Vitae" htmlFor="cvFile">
               <div className="file-picker">
                 <input
                   id="cvFile"
@@ -126,7 +128,7 @@ export default function FormularioPage() {
                   Seleccionar archivo
                 </label>
                 <p id="cvFile-help" aria-live="polite" className="file-picker-name">
-                  {formData.cvFile?.name ?? 'Ningún archivo seleccionado'}
+                  {formData.cvFile?.name ?? 'PDF o Word, ningún archivo seleccionado'}
                 </p>
               </div>
             </FormField>
@@ -134,9 +136,9 @@ export default function FormularioPage() {
             <button
               type="submit"
               disabled={loading}
-              className="ui-button-primary mt-2 w-full px-4 py-4 text-base shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.99]"
+              className="ui-button-primary mt-2 w-full px-4 py-3.5 text-base"
             >
-              {loading ? 'Creando expediente y carpetas...' : 'Iniciar Evaluación'}
+              {loading ? 'Enviando solicitud…' : 'Iniciar evaluación'}
             </button>
           </form>
         </section>

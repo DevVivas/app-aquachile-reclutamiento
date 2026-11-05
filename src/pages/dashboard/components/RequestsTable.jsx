@@ -1,7 +1,7 @@
 import { formatDate } from '@/utils/formatDate.js'
 import StatusBadge from './StatusBadge.jsx'
 
-export default function RequestsTable({ requests, candidateById }) {
+export default function RequestsTable({ requests, candidateById, hasAny }) {
   return (
     <div className="table-scroll">
       <table>
@@ -31,7 +31,11 @@ export default function RequestsTable({ requests, candidateById }) {
         </tbody>
       </table>
       {requests.length === 0 && (
-        <p className="empty-state">No hay solicitudes para este estado.</p>
+        <p className="empty-state">
+          {hasAny
+            ? 'Ninguna solicitud coincide con este estado. Elige otro indicador para ver más.'
+            : 'Aún no hay solicitudes. Aparecerán aquí cuando se envíe el formulario de evaluación.'}
+        </p>
       )}
     </div>
   )

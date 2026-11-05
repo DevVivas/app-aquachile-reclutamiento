@@ -5,15 +5,6 @@ import { ROUTES } from '@/constants/routes.js'
 const navLinkClassName = ({ isActive }) =>
   `nav-link${isActive ? ' nav-link-active' : ''}`
 
-const logoutButtonStyle = {
-  background: 'none',
-  border: 0,
-  width: '100%',
-  textAlign: 'left',
-  cursor: 'pointer',
-  font: 'inherit',
-}
-
 export default function Sidebar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -41,7 +32,7 @@ export default function Sidebar() {
       </nav>
       <div className="sidebar-caption">SESIÓN</div>
       {user?.nombre && <p className="sidebar-user">{user.nombre}</p>}
-      <button type="button" className="nav-link" style={logoutButtonStyle} onClick={handleLogout}>
+      <button type="button" className="nav-link nav-button" onClick={handleLogout}>
         <span className="nav-indicator" aria-hidden="true" />
         Cerrar sesión
       </button>
