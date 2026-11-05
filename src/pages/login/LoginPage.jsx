@@ -37,15 +37,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="formulario-background flex min-h-screen flex-col text-slate-900">
-      <img src="/barra.png" alt="" aria-hidden="true" className="block h-auto w-full" />
-      <main className="relative z-10 mx-auto mt-8 w-full max-w-xl flex-1 px-4 pb-12 sm:mt-12">
-        <section className="form-card">
-          <header className="mb-8 text-center">
+    <div className="formulario-background text-slate-900">
+      <img src="/barra.png" alt="" aria-hidden="true" className="page-bar" />
+      <main className="page-main">
+        <section className="form-card mx-auto w-full max-w-xl">
+          <header className="mb-4 text-center">
             <img
               src="/aquachile-logo.webp"
               alt="AquaChile"
-              className="mx-auto mb-6 h-auto w-56 sm:w-64"
+              className="mx-auto mb-4 h-auto w-36 sm:w-40"
             />
             <h1 className="m-0 text-xl font-semibold leading-7 text-[var(--ui-color-slate)]">
               Acceso administración
@@ -64,7 +64,7 @@ export default function LoginPage() {
             </p>
           )}
 
-          <form onSubmit={handleSubmit} aria-busy={submitting} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} aria-busy={submitting} className="flex flex-col gap-3">
             <div>
               <label htmlFor="email" className="field-label">
                 Correo
@@ -113,7 +113,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="ui-button-primary mt-2 w-full px-4 py-3.5 text-base"
+              className="ui-button-primary mt-1 w-full px-4 py-3 text-base"
             >
               {submitting ? 'Ingresando…' : 'Ingresar'}
             </button>
@@ -121,7 +121,7 @@ export default function LoginPage() {
         </section>
       </main>
       <footer className="landscape-footer">
-        <img src="/paisaje.png" alt="" aria-hidden="true" className="block h-auto w-full" />
+        <img src="/paisaje.png" alt="" aria-hidden="true" className="landscape-footer-image" />
         <img src="/barra.png" alt="" aria-hidden="true" className="landscape-footer-bar" />
       </footer>
     </div>
