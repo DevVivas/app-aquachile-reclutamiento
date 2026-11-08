@@ -1,6 +1,10 @@
+import { FileText, Loader2, Upload } from 'lucide-react'
+import { AuthCard, Stagger } from '@/components/ui/auth-card.jsx'
+import { Button } from '@/components/ui/button.jsx'
+import { Input, Select } from '@/components/ui/input.jsx'
 import FormAlert from './components/FormAlert.jsx'
 import FormField from './components/FormField.jsx'
-import { FAMILIAS_CARGO, INPUT_CLASSNAME } from './constants.js'
+import { FAMILIAS_CARGO } from './constants.js'
 import { useEvaluacionForm } from './hooks/useEvaluacionForm.js'
 
 export default function FormularioPage() {
@@ -15,82 +19,95 @@ export default function FormularioPage() {
   } = useEvaluacionForm()
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
-      <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-md border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-          Solicitud de Evaluación Psicolaboral
-        </h2>
-        <p className="text-sm text-gray-500 mb-6 text-center leading-relaxed">
-          Ingresa los antecedentes del candidato para generar el entorno y las plantillas automáticas.
-        </p>
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
+      <AuthCard className="max-w-lg">
+        <Stagger className="space-y-1.5 text-center">
+          <img src="/aquachile-logo.webp" alt="AquaChile" className="mx-auto mb-2 h-14" />
+          <h1 className="text-xl font-semibold tracking-tight">Solicitud de Evaluación Psicolaboral</h1>
+          <p className="text-sm leading-relaxed text-muted">
+            Ingresa los antecedentes del candidato para generar el entorno y las plantillas automáticas.
+          </p>
+        </Stagger>
 
         {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <FormField label="Nombre Completo del Candidato:">
-            <input
-              type="text"
-              name="candidateName"
-              required
-              placeholder="Ej: Juan Pérez Martínez"
-              value={formData.candidateName}
-              onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
-            />
-          </FormField>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Stagger>
+            <FormField label="Nombre completo del candidato" htmlFor="candidateName">
+              <Input
+                id="candidateName"
+                name="candidateName"
+                required
+                placeholder="Ej: Juan Pérez Martínez"
+                value={formData.candidateName}
+                onChange={handleInputChange}
+              />
+            </FormField>
+          </Stagger>
 
-          <FormField label="Familia de Cargo:">
-            <select
-              name="jobFamily"
-              required
-              value={formData.jobFamily}
-              onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
-            >
-              <option value="" disabled className="text-gray-400">
-                Selecciona una familia de cargo
-              </option>
-              {FAMILIAS_CARGO.map((family) => (
-                <option key={family} value={family} className="text-gray-900 bg-white">
-                  {family}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          <Stagger>
+            <FormField label="Familia de cargo" htmlFor="jobFamily">
+              <Select id="jobFamily" name="jobFamily" required value={formData.jobFamily} onChange={handleInputChange}>
+                <option value="" disabled>Selecciona una familia de cargo</option>
+                {FAMILIAS_CARGO.map((family) => (
+                  <option key={family} value={family}>{family}</option>
+                ))}
+              </Select>
+            </FormField>
+          </Stagger>
 
-          <FormField label="Nombre del Cargo:">
-            <input
-              type="text"
-              name="jobTitle"
-              required
-              placeholder="Ej: Analista de Procesos"
-              value={formData.jobTitle}
-              onChange={handleInputChange}
-              className={INPUT_CLASSNAME}
-            />
-          </FormField>
+          <Stagger>
+            <FormField label="Nombre del cargo" htmlFor="jobTitle">
+              <Input
+                id="jobTitle"
+                name="jobTitle"
+                required
+                placeholder="Ej: Analista de Procesos"
+                value={formData.jobTitle}
+                onChange={handleInputChange}
+              />
+            </FormField>
+          </Stagger>
 
-          <FormField label="Curriculum Vitae (PDF o Word):">
-            <input
-              ref={fileInputRef}
-              type="file"
-              name="cvFile"
-              required
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-            />
-          </FormField>
+          <Stagger>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-canvas p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
+                  <FileText className="size-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {formData.cvFile ? formData.cvFile.name : 'Curriculum Vitae'}
+                  </p>
+                  <p className="text-xs text-muted">PDF o Word</p>
+                </div>
+              </div>
+              <Button type="button" variant="outline" className="h-9 px-3" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="size-4" aria-hidden="true" />
+                {formData.cvFile ? 'Cambiar' : 'Subir'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="cvFile"
+                required
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileChange}
+                className="sr-only"
+                tabIndex={-1}
+                aria-label="Curriculum Vitae (PDF o Word)"
+              />
+            </div>
+          </Stagger>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-          >
-            {loading ? 'Creando expediente y carpetas...' : 'Iniciar Evaluación'}
-          </button>
+          <Stagger>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+              {loading ? 'Creando expediente y carpetas…' : 'Iniciar evaluación'}
+            </Button>
+          </Stagger>
         </form>
-      </div>
-    </div>
+      </AuthCard>
+    </main>
   )
 }

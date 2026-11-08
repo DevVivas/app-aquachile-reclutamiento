@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+/* Tokens compartidos: formulario y dashboard usan los mismos. */
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #000080;
+  --color-brand-soft: #ededf8;
+  --color-ink: #111c36;
+  --color-muted: #6b7385;
+  --color-line: #e4e7ef;
+  --color-canvas: #f7f8fb;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+}

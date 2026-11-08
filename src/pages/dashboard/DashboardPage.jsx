@@ -1,94 +1,57 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { REQUEST_STATUS, STATUS_FILTER_ALL } from '@/constants/requestStatus.js'
+import { ROUTES } from '@/constants/routes.js'
 import { getCandidates, getRequests } from '@/services/solicitudesService.js'
-import MetricCard from './components/MetricCard.jsx'
 import RequestsTable from './components/RequestsTable.jsx'
+import StatusTab from './components/StatusTab.jsx'
+
+const TABS = [
+  { value: STATUS_FILTER_ALL, label: 'Todas' },
+  { value: REQUEST_STATUS.PENDING, label: 'Pendientes' },
+  { value: REQUEST_STATUS.IN_PROGRESS, label: 'En proceso' },
+  { value: REQUEST_STATUS.FINISHED, label: 'Finalizadas' },
+]
 
 export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL)
   const requests = getRequests()
   const candidates = getCandidates()
-  const candidateById = Object.fromEntries(
-    candidates.map((candidate) => [candidate.id, candidate]),
-  )
-  const countByStatus = (status) =>
-    requests.filter((request) => request.status === status).length
+  const candidateById = Object.fromEntries(candidates.map((candidate) => [candidate.id, candidate]))
+  const countFor = (value) =>
+    value === STATUS_FILTER_ALL ? requests.length : requests.filter((request) => request.status === value).length
   const filteredRequests =
-    statusFilter === STATUS_FILTER_ALL
-      ? requests
-      : requests.filter((request) => request.status === statusFilter)
+    statusFilter === STATUS_FILTER_ALL ? requests : requests.filter((request) => request.status === statusFilter)
 
   return (
     <>
       <header className="topbar">
-        <div className="breadcrumb"><strong>Dashboard</strong></div>
+        <h1>Panel de gestión</h1>
+        <Link to={ROUTES.form} className="btn-outline">
+          <Plus size={14} aria-hidden="true" />
+          Nueva solicitud
+        </Link>
       </header>
 
-      <div className="dashboard-content">
-        <section className="page-heading">
-          <div>
-            <p className="eyebrow">RECLUTAMIENTO Y SELECCIÓN</p>
-            <h1>Panel de gestión</h1>
-          </div>
-        </section>
-
-        <section className="metrics-grid" aria-label="Indicadores">
-          <MetricCard
-            label="Total de candidatos"
-            value={candidates.length}
-            detail="registrados"
-            tone="teal"
-            active={statusFilter === STATUS_FILTER_ALL}
-            onClick={() => setStatusFilter(STATUS_FILTER_ALL)}
+      <div className="toolbar" role="group" aria-label="Filtrar por estado">
+        {TABS.map((tab) => (
+          <StatusTab
+            key={tab.value}
+            label={tab.label}
+            count={countFor(tab.value)}
+            active={statusFilter === tab.value}
+            onClick={() => setStatusFilter(tab.value)}
           />
-          <MetricCard
-            label="Solicitudes pendientes"
-            value={countByStatus(REQUEST_STATUS.PENDING)}
-            detail="por iniciar"
-            tone="amber"
-            active={statusFilter === REQUEST_STATUS.PENDING}
-            onClick={() => setStatusFilter(REQUEST_STATUS.PENDING)}
-          />
-          <MetricCard
-            label="Solicitudes en proceso"
-            value={countByStatus(REQUEST_STATUS.IN_PROGRESS)}
-            detail="en evaluación"
-            tone="blue"
-            active={statusFilter === REQUEST_STATUS.IN_PROGRESS}
-            onClick={() => setStatusFilter(REQUEST_STATUS.IN_PROGRESS)}
-          />
-          <MetricCard
-            label="Evaluaciones finalizadas"
-            value={countByStatus(REQUEST_STATUS.FINISHED)}
-            detail="completadas"
-            tone="coral"
-            active={statusFilter === REQUEST_STATUS.FINISHED}
-            onClick={() => setStatusFilter(REQUEST_STATUS.FINISHED)}
-          />
-        </section>
-
-        <section className="requests-section" aria-labelledby="requests-title">
-          <div className="section-heading">
-            <div>
-              <div className="section-title-line">
-                <h2 id="requests-title">Solicitudes recientes</h2>
-                <span className="result-count">{filteredRequests.length}</span>
-              </div>
-            </div>
-            <p className="requests-note">
-              <span className="warning-icon" aria-hidden="true">⚠</span>
-              Revisa el estado de las evaluaciones solicitadas.
-            </p>
-          </div>
-
-          <RequestsTable requests={filteredRequests} candidateById={candidateById} />
-
-          <footer className="table-footer">
-            Mostrando {filteredRequests.length} de {requests.length} solicitudes
-          </footer>
-        </section>
-        <footer className="page-footer">AquaChile <span>·</span> Gestión de evaluaciones psicolaborales</footer>
+        ))}
       </div>
+
+      <section className="requests-section" aria-label="Solicitudes recientes">
+        <RequestsTable requests={filteredRequests} candidateById={candidateById} />
+        <footer className="table-footer">
+          {filteredRequests.length} de {requests.length} solicitudes
+        </footer>
+      </section>
     </>
   )
 }

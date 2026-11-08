@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { adminRequestDetailPath } from '@/constants/routes.js'
-import { fechaFormato } from '@/utils/fechaFormato.js'
+import { fechaFormato } from '@/utils/formatDate.js'
 import StatusBadge from './StatusBadge.jsx'
 
 export default function RequestsTable({ requests, candidateById }) {

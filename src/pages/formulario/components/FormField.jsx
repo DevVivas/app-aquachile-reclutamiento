@@ -1,7 +1,7 @@
-export default function FormField({ label, children }) {
+export default function FormField({ label, htmlFor, children }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-semibold text-gray-700">{label}</label>
+      <label htmlFor={htmlFor} className="text-[13px] font-medium text-ink">{label}</label>
       {children}
     </div>
   )
