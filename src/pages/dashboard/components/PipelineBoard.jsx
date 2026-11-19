@@ -13,17 +13,19 @@ export default function PipelineBoard({ applications, team, onMove }) {
   const [overStage, setOverStage] = useState(null)
   const nameById = Object.fromEntries(team.map((member) => [member.id, member.full_name]))
 
+  const move = async (id, stage) => {
+    try {
+      await onMove(id, stage)
+    } catch {
+      /* el hook revierte el cambio optimista */
+    }
+  }
+
   const drop = async (stage) => {
     const app = applications.find((item) => item.id === dragId)
     setDragId(null)
     setOverStage(null)
-    if (app && app.stage !== stage) {
-      try {
-        await onMove(app.id, stage)
-      } catch {
-        /* el hook revierte el cambio optimista */
-      }
-    }
+    if (app && app.stage !== stage) await move(app.id, stage)
   }
 
   return (
@@ -71,6 +73,19 @@ export default function PipelineBoard({ applications, team, onMove }) {
                       {nameById[app.assigned_to]?.split(' ')[0] ?? 'Sin asignar'} · {haceCuanto(app.created_at)}
                     </span>
                   </div>
+                  {/* Alternativa al arrastre: accesible con teclado y lector de pantalla. */}
+                  <select
+                    aria-label={`Mover a ${app.candidate_name} a otra etapa`}
+                    value={app.stage}
+                    onChange={(e) => move(app.id, e.target.value)}
+                    className="mt-2 h-7 w-full rounded border border-line bg-canvas px-1.5 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
+                  >
+                    {STAGES.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.value === app.stage ? `Etapa: ${option.label}` : `Mover a ${option.label}`}
+                      </option>
+                    ))}
+                  </select>
                 </li>
               ))}
             </ol>

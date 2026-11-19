@@ -78,5 +78,11 @@ test('vista pipeline: arrastrar una tarjeta cambia la etapa', async ({ page }) =
   await page.reload()
   await page.getByPlaceholder('Buscar por nombre, cargo o correo…').fill(name)
   await expect(page.getByTestId('application-row').filter({ hasText: name })).toContainText('Entrevista')
+  // Alternativa por teclado: el selector de la tarjeta.
+  await page.getByRole('button', { name: 'Vista pipeline' }).click()
+  const move = page.getByRole('combobox', { name: `Mover a ${name} a otra etapa` })
+  await move.focus()
+  await move.selectOption('oferta')
+  await expect(page.getByRole('region', { name: 'Oferta' })).toContainText(name)
   await cleanup([name])
 })
