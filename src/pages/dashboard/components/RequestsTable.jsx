@@ -4,14 +4,42 @@ import { fechaFormato } from '@/utils/formatDate.js'
 import AssigneeSelect from './AssigneeSelect.jsx'
 import { ScoreBadge, StageBadge } from './Badges.jsx'
 
-export default function RequestsTable({ applications, team, onAssign, emptyText = 'No hay postulaciones con estos filtros.' }) {
+function SelectAll({ ids, selected, onToggleAll }) {
+  const count = ids.filter((id) => selected.has(id)).length
+  return (
+    <input
+      type="checkbox"
+      aria-label="Seleccionar todas las postulaciones visibles"
+      className="size-4 accent-brand"
+      checked={ids.length > 0 && count === ids.length}
+      ref={(el) => el && (el.indeterminate = count > 0 && count < ids.length)}
+      onChange={() => onToggleAll(ids)}
+    />
+  )
+}
+
+export default function RequestsTable({
+  applications,
+  team,
+  onAssign,
+  selected = new Set(),
+  onToggle,
+  onToggleAll,
+  emptyText = 'No hay postulaciones con estos filtros.',
+}) {
   const navigate = useNavigate()
+  const selectable = Boolean(onToggle)
 
   return (
     <div className="table-scroll">
       <table>
         <thead>
           <tr>
+            {selectable && (
+              <th scope="col" className="w-8">
+                <SelectAll ids={applications.map((app) => app.id)} selected={selected} onToggleAll={onToggleAll} />
+              </th>
+            )}
             <th scope="col">Postulante</th>
             <th scope="col">Cargo</th>
             <th scope="col">Afinidad IA</th>
@@ -24,10 +52,22 @@ export default function RequestsTable({ applications, team, onAssign, emptyText 
           {applications.map((app) => (
             <tr
               key={app.id}
-              className="cursor-pointer"
+              className={selected.has(app.id) ? 'cursor-pointer bg-brand-soft/60' : 'cursor-pointer'}
               data-testid="application-row"
+              aria-selected={selectable ? selected.has(app.id) : undefined}
               onClick={() => navigate(adminRequestDetailPath(app.id))}
             >
+              {selectable && (
+                <td onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Seleccionar a ${app.candidate_name}`}
+                    className="size-4 accent-brand"
+                    checked={selected.has(app.id)}
+                    onChange={() => onToggle(app.id)}
+                  />
+                </td>
+              )}
               <td>
                 <Link className="candidate-link" to={adminRequestDetailPath(app.id)} onClick={(e) => e.stopPropagation()}>
                   {app.candidate_name}

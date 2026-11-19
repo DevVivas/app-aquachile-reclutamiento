@@ -3,7 +3,8 @@ import { apply, CV, cleanup, login, uniqueName } from './helpers.js'
 
 const leader = uniqueName('E2E Líder Rojas')
 const operator = uniqueName('E2E Operaria Soto')
-test.afterAll(() => cleanup([leader, operator]))
+const extra = []
+test.afterAll(() => cleanup([leader, operator, ...extra]))
 
 test('postulación → dashboard → asignar → CV + IA → etapas → notas', async ({ page }) => {
   // 1. Dos personas postulan al mismo cargo de jefatura.
@@ -68,6 +69,7 @@ test('postulación → dashboard → asignar → CV + IA → etapas → notas', 
 
 test('vista pipeline: arrastrar una tarjeta cambia la etapa', async ({ page }) => {
   const name = uniqueName('E2E Kanban')
+  extra.push(name)
   await apply(page, { name, title: 'Operario de planta', cv: CV.operator })
   await login(page)
   await page.getByPlaceholder('Buscar por nombre, cargo o correo…').fill(name)
@@ -88,5 +90,4 @@ test('vista pipeline: arrastrar una tarjeta cambia la etapa', async ({ page }) =
   await move.selectOption('oferta')
   await expect(page.getByRole('region', { name: 'Oferta' })).toContainText(name)
   expect((await savedByKeyboard).ok()).toBe(true)
-  await cleanup([name])
 })

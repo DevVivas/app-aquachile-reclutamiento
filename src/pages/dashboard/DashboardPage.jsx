@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Columns3, ExternalLink, Loader2, Rows3, Search } from 'lucide-react'
+import { Columns3, Download, ExternalLink, Loader2, Rows3, Search } from 'lucide-react'
 import { useAuth } from '@/auth/authContext.js'
 import { JOB_FAMILIES, STAGES } from '@/constants/pipeline.js'
 import { ROUTES } from '@/constants/routes.js'
 import { cn } from '@/lib/utils.js'
+import { applicationsToCsv, downloadCsv } from '@/utils/csv.js'
+import BulkBar from './components/BulkBar.jsx'
 import PipelineBoard from './components/PipelineBoard.jsx'
 import RequestsTable from './components/RequestsTable.jsx'
 import StatusTab from './components/StatusTab.jsx'
@@ -37,11 +39,36 @@ export default function DashboardPage() {
   const { applications, team, loading, error, assign, move } = useApplications()
   const [filters, setFilters] = useState({ stage: ALL, query: '', assignee: ALL, family: ALL, sort: 'recent' })
   const [view, setView] = useState('table')
+  const [selected, setSelected] = useState(() => new Set())
 
   const setFilter = (key, value) => setFilters((current) => ({ ...current, [key]: value }))
   const stats = useMemo(() => computeStats(applications, user?.id), [applications, user?.id])
   const visible = useMemo(() => filterApplications(applications, filters, user?.id), [applications, filters, user?.id])
   const countFor = (stage) => (stage === ALL ? applications.length : applications.filter((app) => app.stage === stage).length)
+  // Solo cuentan las seleccionadas que siguen visibles con los filtros actuales.
+  const selectedVisible = visible.filter((app) => selected.has(app.id))
+
+  const toggle = (id) =>
+    setSelected((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const toggleAll = (ids) =>
+    setSelected((current) => (ids.every((id) => current.has(id)) ? new Set() : new Set(ids)))
+
+  const bulk = (action) => async (value) => {
+    const results = await Promise.allSettled(selectedVisible.map((app) => action(app.id, value)))
+    const failed = results.filter((r) => r.status === 'rejected').length
+    return { ok: results.length - failed, failed }
+  }
+
+  const exportCsv = () => {
+    const rows = selectedVisible.length ? selectedVisible : visible
+    downloadCsv(applicationsToCsv(rows, team), `postulaciones-${new Date().toISOString().slice(0, 10)}.csv`)
+  }
+
   const boardSource = useMemo(
     () => filterApplications(applications, { ...filters, stage: ALL }, user?.id),
     [applications, filters, user?.id],
@@ -74,7 +101,11 @@ export default function DashboardPage() {
               <span className="sr-only">Vista pipeline</span>
             </button>
           </div>
-          <Link to={ROUTES.form} target="_blank" className="btn-outline">
+          <button type="button" className="btn-outline" onClick={exportCsv} disabled={!visible.length}>
+            <Download size={14} aria-hidden="true" />
+            {selectedVisible.length ? `Exportar ${selectedVisible.length}` : 'Exportar CSV'}
+          </button>
+          <Link to={ROUTES.form} target="_blank" className="btn-outline max-sm:hidden">
             <ExternalLink size={14} aria-hidden="true" />
             Formulario público
           </Link>
@@ -120,6 +151,16 @@ export default function DashboardPage() {
         </select>
       </div>
 
+      {view === 'table' && selectedVisible.length > 0 && (
+        <BulkBar
+          count={selectedVisible.length}
+          team={team}
+          onAssign={bulk(assign)}
+          onMove={bulk(move)}
+          onClear={() => setSelected(new Set())}
+        />
+      )}
+
       {view === 'table' && (
         <div className="toolbar" role="group" aria-label="Filtrar por etapa">
           <StatusTab label="Todas" count={countFor(ALL)} active={filters.stage === ALL} onClick={() => setFilter('stage', ALL)} />
@@ -149,6 +190,9 @@ export default function DashboardPage() {
             applications={visible}
             team={team}
             onAssign={assign}
+            selected={selected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
             emptyText={applications.length ? 'No hay postulaciones con estos filtros.' : 'Aún no hay postulaciones. Comparte el formulario público para empezar.'}
           />
           <footer className="table-footer">
