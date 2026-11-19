@@ -12,6 +12,22 @@ export default defineConfig(({ mode }) => {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
     server: { port: Number(env.PORT) || 5173 },
+    build: {
+      rolldownOptions: {
+        output: {
+          // Librerías estables en chunks propios: mejor caché entre despliegues
+          // y el formulario público no arrastra código del panel.
+          codeSplitting: {
+            groups: [
+              { name: 'react', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/, priority: 30 },
+              { name: 'supabase', test: /node_modules[\\/]@supabase[\\/]/, priority: 20 },
+              { name: 'motion', test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/, priority: 20 },
+              { name: 'vendor', test: /node_modules[\\/]/, priority: 10 },
+            ],
+          },
+        },
+      },
+    },
     test: {
       environment: 'jsdom',
       globals: true,
