@@ -7,7 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run -c vitest.integration.config.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm run lint && npm test && npm run test:integration && npm run test:e2e",
+    "fixtures": "node scripts/make-fixtures.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.1",
@@ -39,5 +46,8 @@
     "jsdom": "^29.1.1",
     "vite": "^8.3.0",
     "vitest": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

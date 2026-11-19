@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, feature/new-frontend]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint · unit tests · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit + component tests (coverage)
+        run: npm run test:coverage
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://qcqnnedlbyfybzdulfwv.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || 'sb_publishable_WQpgq3YWvMnlsak9Le_m7Q_UnxlemKb' }}
+      - name: Security audit (prod deps)
+        run: npm audit --omit=dev --audit-level=high
+
+  integration:
+    name: Backend integration (Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Los PR desde forks no reciben secretos: se omite en vez de fallar.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://qcqnnedlbyfybzdulfwv.supabase.co' }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || 'sb_publishable_WQpgq3YWvMnlsak9Le_m7Q_UnxlemKb' }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$E2E_ADMIN_PASSWORD" ]; then
+            echo "::warning::Faltan los secretos E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD: se omiten los tests de integraci�n."
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          fi
+      - run: npm ci
+        if: steps.secrets.outputs.missing != 'true'
+      - run: npm run test:integration
+        if: steps.secrets.outputs.missing != 'true'
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      CI: 'true'
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://qcqnnedlbyfybzdulfwv.supabase.co' }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || 'sb_publishable_WQpgq3YWvMnlsak9Le_m7Q_UnxlemKb' }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$E2E_ADMIN_PASSWORD" ]; then
+            echo "::warning::Faltan los secretos E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD: se omiten los E2E."
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          fi
+      - run: npm ci
+        if: steps.secrets.outputs.missing != 'true'
+      - run: npx playwright install --with-deps chromium
+        if: steps.secrets.outputs.missing != 'true'
+      - run: npm run test:e2e
+        if: steps.secrets.outputs.missing != 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
