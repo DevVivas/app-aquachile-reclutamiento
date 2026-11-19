@@ -7,6 +7,16 @@ import {
 } from '@/services/applicationsService.js'
 import { listTeam } from '@/services/teamService.js'
 
+/**
+ * Los eventos de Realtime pueden llegar atrasados (p. ej. el del análisis IA después
+ * de que el usuario movió la etapa). Solo se aplica un evento si no es más viejo
+ * que lo que ya tenemos; updated_at lo fija un trigger en cada UPDATE.
+ */
+export function mergeNewer(current, incoming) {
+  if (current.updated_at && incoming.updated_at && incoming.updated_at < current.updated_at) return current
+  return { ...current, ...incoming }
+}
+
 /** Postulaciones + equipo, con actualizaciones en tiempo real y cambios optimistas. */
 export function useApplications() {
   const [applications, setApplications] = useState([])
@@ -34,7 +44,7 @@ export function useApplications() {
         if (eventType === 'DELETE') return current.filter((app) => app.id !== old.id)
         const exists = current.some((app) => app.id === row.id)
         if (!exists) return [row, ...current]
-        return current.map((app) => (app.id === row.id ? { ...app, ...row } : app))
+        return current.map((app) => (app.id === row.id ? mergeNewer(app, row) : app))
       })
     })
   }, [load])

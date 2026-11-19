@@ -151,3 +151,17 @@ describe('ScoreBadge y AiPanel', () => {
     expect(onReanalyze).toHaveBeenCalled()
   })
 })
+
+describe('mergeNewer (eventos Realtime fuera de orden)', async () => {
+  const { mergeNewer } = await import('@/pages/dashboard/hooks/useApplications.js')
+  it('ignora un evento más viejo que el estado local', () => {
+    const local = { id: 'a', stage: 'entrevista', updated_at: '2026-11-19T03:30:02.000Z' }
+    const stale = { id: 'a', stage: 'recibido', ai_status: 'done', updated_at: '2026-11-19T03:30:01.000Z' }
+    expect(mergeNewer(local, stale)).toBe(local)
+  })
+  it('aplica un evento más nuevo', () => {
+    const local = { id: 'a', stage: 'recibido', ai_status: 'processing', updated_at: '2026-11-19T03:30:01.000Z' }
+    const fresh = { id: 'a', stage: 'recibido', ai_status: 'done', updated_at: '2026-11-19T03:30:05.000Z' }
+    expect(mergeNewer(local, fresh).ai_status).toBe('done')
+  })
+})

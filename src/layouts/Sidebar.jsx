@@ -26,7 +26,7 @@ export default function Sidebar() {
             Equipo
           </NavLink>
         )}
-        <NavLink className={navLinkClassName} to={ROUTES.form} target="_blank" end>
+        <NavLink className={(state) => `${navLinkClassName(state)} nav-link-desktop`} to={ROUTES.form} target="_blank" end>
           <ClipboardPlus size={16} aria-hidden="true" />
           Formulario público
         </NavLink>

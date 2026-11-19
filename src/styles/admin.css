@@ -205,6 +205,8 @@
 @media (max-width: 720px) {
   .admin-app .sidebar-user { margin-top: 0; padding: 0; border-top: 0; }
   .admin-app .sidebar-user > div { display: none; }
+  .admin-app .nav-link-desktop { display: none; }
+  .admin-app .sidebar { max-width: 100vw; }
 }
 .admin-app .sidebar-logout {
   display: grid;

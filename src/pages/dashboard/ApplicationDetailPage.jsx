@@ -17,6 +17,7 @@ import {
   subscribeToApplications,
 } from '@/services/applicationsService.js'
 import { listTeam } from '@/services/teamService.js'
+import { cn } from '@/lib/utils.js'
 import { fechaHoraFormato, formatBytes } from '@/utils/formatDate.js'
 import ActivityPanel from './components/ActivityPanel.jsx'
 import AiPanel from './components/AiPanel.jsx'
@@ -26,6 +27,8 @@ import { ScoreBadge, StageBadge } from './components/Badges.jsx'
 function CvViewer({ application }) {
   const [url, setUrl] = useState(null)
   const [failed, setFailed] = useState(false)
+  // En pantallas chicas el CV parte plegado para mostrar primero datos e IA.
+  const [expanded, setExpanded] = useState(false)
   const isPdf = application.cv_mime === 'application/pdf'
 
   useEffect(() => {
@@ -41,7 +44,13 @@ function CvViewer({ application }) {
   const download = async () => window.open(await getCvUrl(application.cv_path, { download: true }), '_blank', 'noopener')
 
   return (
-    <section className="flex min-h-[420px] flex-col overflow-hidden rounded-lg border border-line bg-white lg:h-[calc(100svh-120px)]" aria-label="Curriculum Vitae">
+    <section
+      className={cn(
+        'flex flex-col overflow-hidden rounded-lg border border-line bg-white lg:h-[calc(100svh-120px)] lg:min-h-[420px]',
+        expanded && 'h-[75svh]',
+      )}
+      aria-label="Curriculum Vitae"
+    >
       <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <FileText className="size-4 shrink-0 text-brand" aria-hidden="true" />
@@ -53,6 +62,15 @@ function CvViewer({ application }) {
           </div>
         </div>
         <div className="flex shrink-0 gap-1">
+          <button
+            type="button"
+            className="btn-outline lg:hidden"
+            aria-expanded={expanded}
+            aria-controls="cv-body"
+            onClick={() => setExpanded((value) => !value)}
+          >
+            {expanded ? 'Ocultar' : 'Ver CV'}
+          </button>
           {url && (
             <a href={url} target="_blank" rel="noopener noreferrer" className="btn-outline" title="Abrir en otra pestaña">
               <ExternalLink size={14} aria-hidden="true" />
@@ -60,10 +78,12 @@ function CvViewer({ application }) {
             </a>
           )}
           <button type="button" className="btn-outline" onClick={download}>
-            <Download size={14} aria-hidden="true" /> Descargar
+            <Download size={14} aria-hidden="true" />
+            <span className="max-sm:sr-only">Descargar</span>
           </button>
         </div>
       </header>
+      <div id="cv-body" className={cn('min-h-0 flex-1 flex-col', expanded ? 'flex' : 'hidden lg:flex')}>
       {failed && <p className="p-4 text-red-700" role="alert">No se pudo cargar el CV.</p>}
       {!failed && !url && (
         <div className="grid flex-1 place-items-center text-muted">
@@ -77,6 +97,7 @@ function CvViewer({ application }) {
           <pre className="font-sans text-[13px] whitespace-pre-wrap" data-testid="cv-text">{application.cv_text || 'Texto aún no extraído.'}</pre>
         </div>
       )}
+      </div>
     </section>
   )
 }
@@ -231,7 +252,7 @@ export default function ApplicationDetailPage() {
 
         {actionError && <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800" role="alert">{actionError}</p>}
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,1fr)]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,1fr)]">
           <div className="lg:sticky lg:top-[52px] lg:self-start">
             <CvViewer application={application} />
           </div>
