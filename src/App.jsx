@@ -12,6 +12,7 @@ const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'))
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage.jsx'))
 const ApplicationDetailPage = lazy(() => import('@/pages/dashboard/ApplicationDetailPage.jsx'))
 const TeamPage = lazy(() => import('@/pages/team/TeamPage.jsx'))
+const ComparePage = lazy(() => import('@/pages/compare/ComparePage.jsx'))
 
 const Fallback = () => (
   <div className="grid h-svh place-items-center text-muted" role="status">
@@ -39,6 +40,7 @@ export default function App() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="postulaciones/:id" element={<ApplicationDetailPage />} />
+          <Route path="comparar" element={<ComparePage />} />
           <Route
             path="equipo"
             element={

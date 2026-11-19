@@ -12,4 +12,15 @@ Rama: `feat/flujo-reclutamiento-e2e`. Cada entrada: qué se hizo, cómo se verif
 | f | Asignación masiva | ✅ | Checkbox por fila + "seleccionar todas" (indeterminado), barra con asignar/quitar responsable y mover de etapa, resultado parcial si alguna falla. Tests de componente + E2E que verifica persistencia tras recargar |
 | g | Exportar CSV | ✅ | Exporta filtradas (o seleccionadas), `;` + BOM para Excel es-CL, **protección contra inyección de fórmulas** (el nombre lo escribe el postulante). Unit + E2E que lee el archivo descargado. Extra: `npm run test:cleanup` y limpieza de kanban en `afterAll` (había 4 registros huérfanos, borrados) |
 | h | Advisors de Supabase → migración | ✅ | `20261119000100_rls_performance.sql`: 2 índices de FK + 10 políticas con `(select auth.uid())` / `(select is_staff())` (initplan). Performance: solo quedan INFO de índices sin uso (base nueva). Security: los SECURITY DEFINER son intencionales; **pendiente del usuario:** activar *Leaked password protection* en Auth. Integración 27/27 |
-| i | Comparar dos postulantes | ⏳ | |
+| i | Comparar postulantes lado a lado | ✅ | Seleccionar 2–3 → "Comparar" (`/dashboard/comparar?ids=`): puntaje, desglose por criterio con el líder en verde, señales, fortalezas/brechas, recomendación y proceso; aviso si postulan a cargos distintos. Unit (`compare.test.js`) + E2E con axe (encontró y se corrigió un `<dl>` con rol inválido). Capturas revisadas |
+
+## Resultado
+
+Backlog completo. Suite final: lint ✅ · 78 unit/componentes ✅ · 27 integración ✅ · 19 E2E (escritorio + móvil, con axe) ✅.
+
+Hallazgos que surgieron en el loop (no estaban en el backlog):
+- Eventos Realtime atrasados podían revertir en pantalla un cambio de etapa ya guardado → `mergeNewer` por `updated_at`.
+- Tests E2E que borraban sus datos solo si pasaban dejaban registros huérfanos → limpieza en `afterAll` + `npm run test:cleanup`.
+- Riesgo de inyección de fórmulas al exportar CSV (el nombre lo escribe el postulante) → celdas neutralizadas.
+
+Pendiente del usuario: secretos E2E en GitHub, `GEMINI_API_KEY`/`GROQ_API_KEY` en Supabase, `SUPABASE_ACCESS_TOKEN` para despliegue automático y activar *Leaked password protection* en Auth.

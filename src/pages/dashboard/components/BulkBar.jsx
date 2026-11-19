@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Columns2, Loader2, X } from 'lucide-react'
 import { ROLES, STAGES } from '@/constants/pipeline.js'
+import { comparePath } from '@/constants/routes.js'
 
 const CONTROL =
   'h-8 rounded-md border border-line bg-white px-2 text-[13px] text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 disabled:opacity-60'
 
 /** Acciones sobre varias postulaciones a la vez: asignar responsable o mover de etapa. */
-export default function BulkBar({ count, team, onAssign, onMove, onClear }) {
+export default function BulkBar({ count, ids = [], team, onAssign, onMove, onClear }) {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
 
@@ -54,6 +56,11 @@ export default function BulkBar({ count, team, onAssign, onMove, onClear }) {
           <option key={stage.value} value={stage.value}>{stage.label}</option>
         ))}
       </select>
+      {count >= 2 && count <= 3 && (
+        <Link to={comparePath(ids)} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand px-3 text-[13px] font-medium text-white hover:bg-brand/90">
+          <Columns2 className="size-3.5" aria-hidden="true" /> Comparar
+        </Link>
+      )}
       {busy && <Loader2 className="size-4 animate-spin text-brand" aria-label="Aplicando cambios" />}
       {result && !busy && (
         <span className={result.failed ? 'text-[13px] text-red-700' : 'text-[13px] text-green-700'} role="status">

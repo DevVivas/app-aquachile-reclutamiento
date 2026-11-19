@@ -154,6 +154,7 @@ export default function DashboardPage() {
       {view === 'table' && selectedVisible.length > 0 && (
         <BulkBar
           count={selectedVisible.length}
+          ids={selectedVisible.map((app) => app.id)}
           team={team}
           onAssign={bulk(assign)}
           onMove={bulk(move)}

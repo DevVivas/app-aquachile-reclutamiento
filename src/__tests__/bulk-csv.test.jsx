@@ -60,7 +60,8 @@ describe('BulkBar', () => {
     const onAssign = vi.fn().mockResolvedValue({ ok: 2, failed: 0 })
     const onMove = vi.fn().mockResolvedValue({ ok: 1, failed: 1 })
     const user = userEvent.setup()
-    render(<BulkBar count={2} team={team} onAssign={onAssign} onMove={onMove} onClear={vi.fn()} />)
+    render(<MemoryRouter><BulkBar count={2} ids={['a1', 'a2']} team={team} onAssign={onAssign} onMove={onMove} onClear={vi.fn()} /></MemoryRouter>)
+    expect(screen.getByRole('link', { name: 'Comparar' })).toHaveAttribute('href', '/dashboard/comparar?ids=a1,a2')
     expect(screen.getByText('2 seleccionadas')).toBeInTheDocument()
 
     await user.selectOptions(screen.getByLabelText('Asignar responsable a las seleccionadas'), 'u1')
@@ -74,7 +75,8 @@ describe('BulkBar', () => {
 
   it('"Quitar responsable" envía null', async () => {
     const onAssign = vi.fn().mockResolvedValue({ ok: 1, failed: 0 })
-    render(<BulkBar count={1} team={team} onAssign={onAssign} onMove={vi.fn()} onClear={vi.fn()} />)
+    render(<MemoryRouter><BulkBar count={1} ids={['a1']} team={team} onAssign={onAssign} onMove={vi.fn()} onClear={vi.fn()} /></MemoryRouter>)
+    expect(screen.queryByRole('link', { name: 'Comparar' })).not.toBeInTheDocument()
     await userEvent.setup().selectOptions(screen.getByLabelText('Asignar responsable a las seleccionadas'), 'none')
     expect(onAssign).toHaveBeenCalledWith(null)
   })
