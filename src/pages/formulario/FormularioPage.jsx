@@ -1,5 +1,5 @@
 import { FileText, Loader2, Upload } from 'lucide-react'
-import { AuthCard, Stagger } from '@/components/ui/auth-card.jsx'
+import { AuthCard, AuthLogo, AuthScreen, Stagger } from '@/components/ui/auth-card.jsx'
 import { Button } from '@/components/ui/button.jsx'
 import { Input, Select } from '@/components/ui/input.jsx'
 import FormAlert from './components/FormAlert.jsx'
@@ -19,25 +19,26 @@ export default function FormularioPage() {
   } = useEvaluacionForm()
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
+    <AuthScreen>
       <AuthCard className="max-w-lg">
-        <Stagger className="space-y-1.5 text-center">
-          <img src="/aquachile-logo.webp" alt="AquaChile" className="mx-auto mb-2 h-14" />
+        <Stagger className="space-y-1 text-center">
+          <AuthLogo />
           <h1 className="text-xl font-semibold tracking-tight">Solicitud de Evaluación Psicolaboral</h1>
-          <p className="text-sm leading-relaxed text-muted">
+          <p className="text-sm leading-snug text-muted">
             Ingresa los antecedentes del candidato para generar el entorno y las plantillas automáticas.
           </p>
         </Stagger>
 
         {message && <FormAlert type={message.type}>{message.text}</FormAlert>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Stagger>
             <FormField label="Nombre completo del candidato" htmlFor="candidateName">
               <Input
                 id="candidateName"
                 name="candidateName"
                 required
+                maxLength={120}
                 placeholder="Ej: Juan Pérez Martínez"
                 value={formData.candidateName}
                 onChange={handleInputChange}
@@ -62,6 +63,7 @@ export default function FormularioPage() {
                 id="jobTitle"
                 name="jobTitle"
                 required
+                maxLength={120}
                 placeholder="Ej: Analista de Procesos"
                 value={formData.jobTitle}
                 onChange={handleInputChange}
@@ -70,7 +72,7 @@ export default function FormularioPage() {
           </Stagger>
 
           <Stagger>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-canvas p-3">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-canvas p-2.5">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
                   <FileText className="size-4" aria-hidden="true" />
@@ -108,6 +110,6 @@ export default function FormularioPage() {
           </Stagger>
         </form>
       </AuthCard>
-    </main>
+    </AuthScreen>
   )
 }

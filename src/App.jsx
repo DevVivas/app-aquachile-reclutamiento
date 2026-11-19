@@ -4,18 +4,20 @@ import AdminLayout from '@/layouts/AdminLayout.jsx'
 import FormularioPage from '@/pages/formulario/FormularioPage.jsx'
 import DashboardPage from '@/pages/dashboard/DashboardPage.jsx'
 import RequestDetailPage from '@/pages/dashboard/RequestDetailPage.jsx'
+import LoginPage from '@/pages/login/LoginPage.jsx'
 
 export default function App() {
     return (
         <Routes>
-            //Formulario: formulario de solicitud
+            {/* Formulario: formulario de solicitud */}
             <Route path={ROUTES.form} element={<FormularioPage />} />
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
 
-                //Admin: dashboard de solicitudes
-                <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
-                    <Route index element={<DashboardPage />} />
-                    <Route path="solicitudes/:id" element={<RequestDetailPage />} />
-                </Route>
+            {/* Admin: dashboard de solicitudes */}
+            <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="solicitudes/:id" element={<RequestDetailPage />} />
+            </Route>
 
             <Route path="*" element={<Navigate to={ROUTES.form} replace />} />
         </Routes>

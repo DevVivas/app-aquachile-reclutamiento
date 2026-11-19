@@ -1,6 +1,13 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils.js'
 
+// Pantalla fija (sin scroll): centra la tarjeta y la deja siempre dentro del viewport.
+export function AuthScreen({ children }) {
+  return (
+    <main className="flex h-svh items-center justify-center overflow-hidden bg-canvas px-4">{children}</main>
+  )
+}
+
 // Tarjeta blanca con banner de paisaje y entrada escalonada (fade-up + stagger).
 export function AuthCard({ className, children }) {
   const reduce = useReducedMotion()
@@ -16,12 +23,12 @@ export function AuthCard({ className, children }) {
     >
       <motion.div
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.3 } } }}
-        className="relative h-36 sm:h-44"
+        className="relative h-[clamp(5rem,16svh,10rem)]"
       >
         <img src="/paisaje.jpg" alt="" className="h-full w-full object-cover" />
         <div className="absolute inset-x-0 -bottom-px top-0 bg-gradient-to-t from-white via-white/10 to-transparent" />
       </motion.div>
-      <div className="relative -mt-9 space-y-5 px-7 pb-8 sm:px-8">{children}</div>
+      <div className="relative -mt-14 space-y-3 px-7 pb-6 sm:px-8">{children}</div>
     </motion.div>
   )
 }
@@ -39,4 +46,8 @@ export function Stagger({ className, children }) {
       {children}
     </motion.div>
   )
+}
+
+export function AuthLogo() {
+  return <img src="/aquachile-logo.webp" alt="AquaChile" className="mx-auto h-24 w-auto" />
 }

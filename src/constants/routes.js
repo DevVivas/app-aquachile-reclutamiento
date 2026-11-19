@@ -1,5 +1,6 @@
 export const ROUTES = {
 	form: '/',
+	LOGIN: '/login',
 	ADMIN: '/dashboard',
 	ADMIN_REQUEST_DETAIL: '/dashboard/solicitudes/:id',
 }
