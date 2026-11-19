@@ -1,15 +1,13 @@
-export const FAMILIAS_CARGO = [
-  'Operaciones y Logística',
-  'Administración y Finanzas',
-  'Comercial y Ventas',
-  'Tecnología e Informática',
-  'Jefaturas y Gerencia',
-]
+export { JOB_FAMILIES as FAMILIAS_CARGO } from '@/constants/pipeline.js'
+
+export const MAX_CV_MB = 10
+export const CV_ACCEPT = '.pdf,.doc,.docx'
 
 export const INITIAL_FORM_STATE = {
   candidateName: '',
+  candidateEmail: '',
+  candidatePhone: '',
   jobFamily: '',
   jobTitle: '',
   cvFile: null,
 }
-

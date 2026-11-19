@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AuthCard, AuthLogo, AuthScreen, Stagger } from '@/components/ui/auth-card.jsx'
 import { Button } from '@/components/ui/button.jsx'
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input.jsx'
 import { ROUTES } from '@/constants/routes.js'
 import FormAlert from '@/pages/formulario/components/FormAlert.jsx'
 import FormField from '@/pages/formulario/components/FormField.jsx'
+import { useAuth } from '@/auth/authContext.js'
 import { login } from '@/services/authService.js'
 
 export default function LoginPage() {
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const { user, loading } = useAuth()
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -35,6 +37,8 @@ export default function LoginPage() {
       setSubmitting(false)
     }
   }
+
+  if (!loading && user && !submitting) return <Navigate to={location.state?.from || ROUTES.ADMIN} replace />
 
   return (
     <AuthScreen>
@@ -81,6 +85,12 @@ export default function LoginPage() {
               {submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
               {submitting ? 'Ingresando…' : 'Ingresar'}
             </Button>
+          </Stagger>
+          <Stagger>
+            <p className="text-center text-xs text-muted">
+              ¿Aún no tienes cuenta?{' '}
+              <Link to={ROUTES.SIGNUP} className="font-medium text-brand hover:underline">Solicita acceso</Link>
+            </p>
           </Stagger>
         </form>
       </AuthCard>

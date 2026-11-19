@@ -74,3 +74,8 @@ id_ed25519
 *.temp
 *.tsbuildinfo
 *.local
+
+# Playwright CLI (sesiones locales) y salidas de pruebas
+.pw/
+.playwright-cli/
+blob-report/

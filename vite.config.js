@@ -6,17 +6,23 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
-  // Opcional: define VITE_API_PROXY_TARGET en .env.local (ej. http://localhost:8000)
-  // para que /api/* llegue al backend durante el desarrollo.
-  const apiTarget = env.VITE_API_PROXY_TARGET
-
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
-    server: apiTarget
-      ? { proxy: { '/api': { target: apiTarget, changeOrigin: true } } }
-      : undefined,
+    server: { port: Number(env.PORT) || 5173 },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: ['./tests/setup.js'],
+      include: ['src/**/*.test.{js,jsx}', 'tests/unit/**/*.test.{js,ts}'],
+      css: false,
+      coverage: {
+        provider: 'v8',
+        include: ['src/**/*.{js,jsx}', 'supabase/functions/_shared/{scoring,validation,ai}.ts'],
+        exclude: ['src/main.jsx', 'src/**/*.test.{js,jsx}'],
+      },
+    },
   }
 })

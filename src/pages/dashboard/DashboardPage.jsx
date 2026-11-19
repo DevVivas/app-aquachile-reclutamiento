@@ -1,57 +1,161 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
-import { REQUEST_STATUS, STATUS_FILTER_ALL } from '@/constants/requestStatus.js'
+import { Columns3, ExternalLink, Loader2, Rows3, Search } from 'lucide-react'
+import { useAuth } from '@/auth/authContext.js'
+import { JOB_FAMILIES, STAGES } from '@/constants/pipeline.js'
 import { ROUTES } from '@/constants/routes.js'
-import { getCandidates, getRequests } from '@/services/solicitudesService.js'
+import { cn } from '@/lib/utils.js'
+import PipelineBoard from './components/PipelineBoard.jsx'
 import RequestsTable from './components/RequestsTable.jsx'
 import StatusTab from './components/StatusTab.jsx'
+import { ALL, computeStats, filterApplications } from './filterApplications.js'
+import { useApplications } from './hooks/useApplications.js'
 
-const TABS = [
-  { value: STATUS_FILTER_ALL, label: 'Todas' },
-  { value: REQUEST_STATUS.PENDING, label: 'Pendientes' },
-  { value: REQUEST_STATUS.IN_PROGRESS, label: 'En proceso' },
-  { value: REQUEST_STATUS.FINISHED, label: 'Finalizadas' },
-]
+function Kpi({ label, value, hint, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'flex min-w-0 flex-col items-start gap-0.5 rounded-lg border bg-white px-3.5 py-2.5 text-left transition-colors',
+        active ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas',
+      )}
+    >
+      <span className="text-xs text-muted">{label}</span>
+      <span className="text-xl font-semibold tabular-nums text-ink">{value}</span>
+      {hint && <span className="truncate text-[11px] text-muted">{hint}</span>}
+    </button>
+  )
+}
+
+const FILTER_SELECT =
+  'h-8 rounded-md border border-line bg-white px-2 text-[13px] text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15'
 
 export default function DashboardPage() {
-  const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL)
-  const requests = getRequests()
-  const candidates = getCandidates()
-  const candidateById = Object.fromEntries(candidates.map((candidate) => [candidate.id, candidate]))
-  const countFor = (value) =>
-    value === STATUS_FILTER_ALL ? requests.length : requests.filter((request) => request.status === value).length
-  const filteredRequests =
-    statusFilter === STATUS_FILTER_ALL ? requests : requests.filter((request) => request.status === statusFilter)
+  const { user, profile } = useAuth()
+  const { applications, team, loading, error, assign, move } = useApplications()
+  const [filters, setFilters] = useState({ stage: ALL, query: '', assignee: ALL, family: ALL, sort: 'recent' })
+  const [view, setView] = useState('table')
+
+  const setFilter = (key, value) => setFilters((current) => ({ ...current, [key]: value }))
+  const stats = useMemo(() => computeStats(applications, user?.id), [applications, user?.id])
+  const visible = useMemo(() => filterApplications(applications, filters, user?.id), [applications, filters, user?.id])
+  const countFor = (stage) => (stage === ALL ? applications.length : applications.filter((app) => app.stage === stage).length)
+  const boardSource = useMemo(
+    () => filterApplications(applications, { ...filters, stage: ALL }, user?.id),
+    [applications, filters, user?.id],
+  )
 
   return (
     <>
       <header className="topbar">
-        <h1>Panel de gestión</h1>
-        <Link to={ROUTES.form} className="btn-outline">
-          <Plus size={14} aria-hidden="true" />
-          Nueva solicitud
-        </Link>
+        <h1>Postulaciones</h1>
+        <div className="flex items-center gap-2">
+          <div className="hidden rounded-md border border-line p-0.5 sm:flex" role="group" aria-label="Vista">
+            <button
+              type="button"
+              aria-pressed={view === 'table'}
+              onClick={() => setView('table')}
+              className={cn('grid size-6 place-items-center rounded', view === 'table' && 'bg-brand-soft text-brand')}
+              title="Vista tabla"
+            >
+              <Rows3 size={14} aria-hidden="true" />
+              <span className="sr-only">Vista tabla</span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === 'board'}
+              onClick={() => setView('board')}
+              className={cn('grid size-6 place-items-center rounded', view === 'board' && 'bg-brand-soft text-brand')}
+              title="Vista pipeline"
+            >
+              <Columns3 size={14} aria-hidden="true" />
+              <span className="sr-only">Vista pipeline</span>
+            </button>
+          </div>
+          <Link to={ROUTES.form} target="_blank" className="btn-outline">
+            <ExternalLink size={14} aria-hidden="true" />
+            Formulario público
+          </Link>
+        </div>
       </header>
 
-      <div className="toolbar" role="group" aria-label="Filtrar por estado">
-        {TABS.map((tab) => (
-          <StatusTab
-            key={tab.value}
-            label={tab.label}
-            count={countFor(tab.value)}
-            active={statusFilter === tab.value}
-            onClick={() => setStatusFilter(tab.value)}
+      <section className="grid grid-cols-2 gap-2 px-5 pt-4 md:grid-cols-4" aria-label="Resumen">
+        <Kpi label="Sin asignar" value={stats.unassigned} hint="activas sin responsable" active={filters.assignee === 'none'} onClick={() => setFilter('assignee', filters.assignee === 'none' ? ALL : 'none')} />
+        <Kpi label="Asignadas a mí" value={stats.mine} hint={profile?.full_name} active={filters.assignee === 'me'} onClick={() => setFilter('assignee', filters.assignee === 'me' ? ALL : 'me')} />
+        <Kpi label="Afinidad alta (IA)" value={stats.highFit} hint="ordenar por puntaje" active={filters.sort === 'score'} onClick={() => setFilter('sort', filters.sort === 'score' ? 'recent' : 'score')} />
+        <Kpi label="En evaluación psicolaboral" value={stats.inEvaluation} hint={`${stats.total} postulaciones en total`} active={filters.stage === 'evaluacion_psicolaboral'} onClick={() => setFilter('stage', filters.stage === 'evaluacion_psicolaboral' ? ALL : 'evaluacion_psicolaboral')} />
+      </section>
+
+      <div className="flex flex-wrap items-center gap-2 px-5 pt-3">
+        <label className="relative min-w-[200px] flex-1">
+          <span className="sr-only">Buscar postulante o cargo</span>
+          <Search size={14} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted" aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Buscar por nombre, cargo o correo…"
+            value={filters.query}
+            onChange={(e) => setFilter('query', e.target.value)}
+            className={cn(FILTER_SELECT, 'w-full pl-8')}
           />
-        ))}
+        </label>
+        <select aria-label="Filtrar por responsable" className={FILTER_SELECT} value={filters.assignee} onChange={(e) => setFilter('assignee', e.target.value)}>
+          <option value={ALL}>Todos los responsables</option>
+          <option value="me">Asignadas a mí</option>
+          <option value="none">Sin asignar</option>
+          {team.filter((m) => m.approved).map((member) => (
+            <option key={member.id} value={member.id}>{member.full_name}</option>
+          ))}
+        </select>
+        <select aria-label="Filtrar por familia" className={FILTER_SELECT} value={filters.family} onChange={(e) => setFilter('family', e.target.value)}>
+          <option value={ALL}>Todas las familias</option>
+          {JOB_FAMILIES.map((family) => (
+            <option key={family} value={family}>{family}</option>
+          ))}
+        </select>
+        <select aria-label="Ordenar" className={FILTER_SELECT} value={filters.sort} onChange={(e) => setFilter('sort', e.target.value)}>
+          <option value="recent">Más recientes</option>
+          <option value="score">Mayor afinidad IA</option>
+        </select>
       </div>
 
-      <section className="requests-section" aria-label="Solicitudes recientes">
-        <RequestsTable requests={filteredRequests} candidateById={candidateById} />
-        <footer className="table-footer">
-          {filteredRequests.length} de {requests.length} solicitudes
-        </footer>
-      </section>
+      {view === 'table' && (
+        <div className="toolbar" role="group" aria-label="Filtrar por etapa">
+          <StatusTab label="Todas" count={countFor(ALL)} active={filters.stage === ALL} onClick={() => setFilter('stage', ALL)} />
+          {STAGES.map((stage) => (
+            <StatusTab
+              key={stage.value}
+              label={stage.short}
+              count={countFor(stage.value)}
+              active={filters.stage === stage.value}
+              onClick={() => setFilter('stage', stage.value)}
+            />
+          ))}
+        </div>
+      )}
+
+      {error && <p className="m-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800" role="alert">{error}</p>}
+
+      {loading ? (
+        <div className="grid place-items-center py-16 text-muted" role="status">
+          <Loader2 className="size-5 animate-spin" aria-label="Cargando postulaciones" />
+        </div>
+      ) : view === 'board' ? (
+        <PipelineBoard applications={boardSource} team={team} onMove={move} />
+      ) : (
+        <section className="requests-section" aria-label="Postulaciones">
+          <RequestsTable
+            applications={visible}
+            team={team}
+            onAssign={assign}
+            emptyText={applications.length ? 'No hay postulaciones con estos filtros.' : 'Aún no hay postulaciones. Comparte el formulario público para empezar.'}
+          />
+          <footer className="table-footer">
+            {visible.length} de {applications.length} postulaciones · se actualiza en tiempo real
+          </footer>
+        </section>
+      )}
     </>
   )
 }

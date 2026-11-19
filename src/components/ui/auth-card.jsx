@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils.js'
 // Pantalla fija (sin scroll): centra la tarjeta y la deja siempre dentro del viewport.
 export function AuthScreen({ children }) {
   return (
-    <main className="flex h-svh items-center justify-center overflow-hidden bg-canvas px-4">{children}</main>
+    <main className="flex h-svh items-center justify-center overflow-y-auto bg-canvas px-4 py-4">{children}</main>
   )
 }
 

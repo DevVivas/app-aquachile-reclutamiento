@@ -1,40 +1,59 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { adminRequestDetailPath } from '@/constants/routes.js'
 import { fechaFormato } from '@/utils/formatDate.js'
-import StatusBadge from './StatusBadge.jsx'
+import AssigneeSelect from './AssigneeSelect.jsx'
+import { ScoreBadge, StageBadge } from './Badges.jsx'
 
-export default function RequestsTable({ requests, candidateById }) {
+export default function RequestsTable({ applications, team, onAssign, emptyText = 'No hay postulaciones con estos filtros.' }) {
+  const navigate = useNavigate()
+
   return (
     <div className="table-scroll">
       <table>
         <thead>
           <tr>
-            <th scope="col">Candidato</th>
+            <th scope="col">Postulante</th>
             <th scope="col">Cargo</th>
-            <th scope="col">Familia de cargo</th>
+            <th scope="col">Afinidad IA</th>
+            <th scope="col">Etapa</th>
             <th scope="col">Responsable</th>
-            <th scope="col">Fecha de solicitud</th>
-            <th scope="col">Estado</th>
+            <th scope="col">Recibido</th>
           </tr>
         </thead>
         <tbody>
-          {requests.map((request) => (
-            <tr key={request.id}>
+          {applications.map((app) => (
+            <tr
+              key={app.id}
+              className="cursor-pointer"
+              data-testid="application-row"
+              onClick={() => navigate(adminRequestDetailPath(app.id))}
+            >
               <td>
-                <Link className="candidate-link" to={adminRequestDetailPath(request.id)}>
-                  {candidateById[request.candidateId]?.name ?? 'Candidato'}
+                <Link className="candidate-link" to={adminRequestDetailPath(app.id)} onClick={(e) => e.stopPropagation()}>
+                  {app.candidate_name}
                 </Link>
+                {app.candidate_email && <div className="text-xs text-muted">{app.candidate_email}</div>}
               </td>
-              <td>{request.jobTitle}</td>
-              <td><span className="family-name">{request.jobFamily}</span></td>
-              <td>{request.owner}</td>
-              <td className="date-cell">{fechaFormato(request.requestedAt)}</td>
-              <td><StatusBadge status={request.status} /></td>
+              <td>
+                <div>{app.job_title}</div>
+                <div className="text-xs text-muted">{app.job_family}</div>
+              </td>
+              <td><ScoreBadge status={app.ai_status} score={app.ai_score} fit={app.ai_fit} /></td>
+              <td><StageBadge stage={app.stage} /></td>
+              <td>
+                <AssigneeSelect
+                  value={app.assigned_to}
+                  team={team}
+                  label={`Responsable de ${app.candidate_name}`}
+                  onChange={(profileId) => onAssign(app.id, profileId)}
+                />
+              </td>
+              <td className="date-cell">{fechaFormato(app.created_at)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {requests.length === 0 && <p className="empty-state">No hay solicitudes para este estado.</p>}
+      {applications.length === 0 && <p className="empty-state">{emptyText}</p>}
     </div>
   )
 }

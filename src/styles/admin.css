@@ -9,9 +9,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.admin-app h1,
-.admin-app p { margin: 0; }
-
 .admin-app .app-shell { display: flex; min-height: 100svh; }
 
 /* ---- Sidebar ---- */
@@ -194,3 +191,32 @@
   .admin-app .topbar, .admin-app .toolbar { padding-right: 12px; padding-left: 12px; }
   .admin-app th:first-child, .admin-app td:first-child { padding-left: 12px; }
 }
+
+/* ---- Usuario en sidebar ---- */
+.admin-app .sidebar-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--color-line);
+}
+@media (max-width: 720px) {
+  .admin-app .sidebar-user { margin-top: 0; padding: 0; border-top: 0; }
+  .admin-app .sidebar-user > div { display: none; }
+}
+.admin-app .sidebar-logout {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.admin-app .sidebar-logout:hover { background: #f0f0f4; color: var(--color-ink); }
+.admin-app .sidebar-logout:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 1px; }
