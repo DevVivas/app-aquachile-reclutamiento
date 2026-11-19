@@ -15,12 +15,12 @@ permissions:
 
 jobs:
   quality:
-    name: Lint · unit tests · build
+    name: Lint, unit tests, build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - name: Lint
@@ -47,8 +47,8 @@ jobs:
       E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
       E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: { node-version: '22', cache: 'npm' }
       - name: Check secrets
         id: secrets
@@ -75,8 +75,8 @@ jobs:
       E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
       E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: { node-version: '22', cache: 'npm' }
       - name: Check secrets
         id: secrets
@@ -91,7 +91,7 @@ jobs:
         if: steps.secrets.outputs.missing != 'true'
       - run: npm run test:e2e
         if: steps.secrets.outputs.missing != 'true'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: playwright-report
