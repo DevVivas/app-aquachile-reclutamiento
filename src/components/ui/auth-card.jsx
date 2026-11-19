@@ -13,7 +13,7 @@ export function AuthCard({ className, children }) {
   const reduce = useReducedMotion()
   return (
     <motion.div
-      initial="hidden"
+      initial={reduce ? false : 'hidden'}
       animate="show"
       variants={{ hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : 0.06 } } }}
       className={cn(
@@ -39,7 +39,7 @@ export function Stagger({ className, children }) {
     <motion.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y: reduce ? 0 : 8 },
+        hidden: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 },
         show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] } },
       }}
     >

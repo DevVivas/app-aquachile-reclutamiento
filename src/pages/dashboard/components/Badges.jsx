@@ -43,7 +43,7 @@ export function ScoreBadge({ status, score, fit, compact = false }) {
     <Pill tone={meta.tone} title={`${meta.label} · puntaje IA ${score}/100`} data-testid="ai-score">
       <Sparkles className="size-3" aria-hidden="true" />
       <span className="tabular-nums">{score}</span>
-      {!compact && <span className="font-normal opacity-80">· {fit}</span>}
+      {!compact && <span className="font-normal">· {fit}</span>}
     </Pill>
   )
 }
